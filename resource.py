@@ -6,7 +6,9 @@ class Resource:
 
     @classmethod
     def from_list(cls, resource_list):
+        if not resource_list:
+            return None
         class_list = []
         for item in resource_list:
-            class_list.append(cls(item.key, item.value))
+            class_list.append(cls(item[0], item[1]))
         return class_list

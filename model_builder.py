@@ -16,7 +16,7 @@ class ModelBuilder:
 
     @classmethod
     def _parse_activity(cls, activity):
-        id = activity.get('id')
+        activity_id = activity.get('id')
 
         try:
             name = activity.find('Name').text
@@ -61,7 +61,7 @@ class ModelBuilder:
             for resource in resources_child:
                 # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource.
                 try:
-                    resources.append({resource.get('id'): resource.text})
+                    resources.append((resource.get('id'), resource.text))
                 except AttributeError:
                     print('Poorly formatted resource')
 
@@ -84,7 +84,7 @@ class ModelBuilder:
         except AttributeError:
             priority = None
 
-        return Activity(id=id, name=name, distribution=distribution, data_input=data_input, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
+        return Activity(id=activity_id, name=name, distribution=distribution, data_input=data_input, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
 
 
 

@@ -1,7 +1,7 @@
+from data_object import DataObject
 from duration import Duration
 from failure import Failure
 from resource import Resource
-
 
 
 class Activity:
@@ -13,13 +13,15 @@ class Activity:
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
-        self.data_input = DataObject(data_input)
-        self.data_output = DataObject(data_input)
+        self.data_input = DataObject.from_list(data_input)
+        self.data_output = DataObject.from_list(data_input)
         self.resources = Resource.from_list(resources)
-        self.failure = Failure(failure_rate)
-        self.retries = retries
+        self.failure = Failure(failure_rate if failure_rate is not None else 0)
+        self.retries = retries if retries is not None else 0
         self.timeout = timeout
-        if priority.lower() in Activity.ALLOWED_PRIORITIES:
+        if priority is None:
+            self.priority = 'normal'
+        elif priority.lower() in Activity.ALLOWED_PRIORITIES:
             self.priority = priority.lower()
         else:
             # TODO: Add more helpful error messages.
@@ -32,3 +34,6 @@ class Activity:
 
     def generate_failure(self):
         return self.failure.check()
+
+    def __repr__(self):
+        return "Id:%s, Name:%s" % (self.id, self.name)
