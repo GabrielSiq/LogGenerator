@@ -1,5 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from abc import ABC, abstractmethod
+from calendar import day_name
 
 from duration import Duration
 
@@ -39,11 +40,13 @@ class ResourceRequirement:
 
 
 class Resource(ABC):
-    pass
+    def __init__(self, id):
+        self.id = id
 
 
 class HumanResource(Resource):
-    def __init__(self, org, dept, role, availability):
+    def __init__(self, id, org, dept, role, availability):
+        Resource.__init__(self, id)
         self.org = org
         self.dept = dept
         self.role = role
@@ -65,7 +68,8 @@ class HumanResource(Resource):
 
 
 class PhysicalResource(Resource):
-    def __init__(self, type, quantity, delay):
+    def __init__(self, id, type, quantity, delay):
+        Resource.__init__(self, id=id)
         self.type = type
         self.quantity = quantity
         self.delay = Duration(delay)
@@ -86,6 +90,23 @@ class PhysicalResource(Resource):
         else:
             print("Can't use more than the current quantity")
             raise AttributeError
+
+
+class Availability:
+    def __init__(self, availability):
+        self.calendar = availability
+
+    def is_available(self, date_and_time):
+        weekday = day_name(date_and_time.weekday())
+        hour = datetime.hour
+        return hour in self.calendar[weekday].keys()
+
+    def available_until(self, start, end):
+        current = start
+        while self.is_available(current) and current < end:
+            current += timedelta(hours=1)
+        return min(current, end)
+
 
 
 
