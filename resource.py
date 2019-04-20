@@ -28,7 +28,7 @@ class ResourceRequirement:
             return None
         class_list = []
         for item in resource_list:
-            if item['class_type'] == 'physical':
+            if item['class_type'] == 'human':
                 class_list.append(cls.human(quantity=item['qty'], org=item['org'], dept=item['dept'], role=item['role']))
             elif item['class_type'] == 'physical':
                 class_list.append(cls.physical(resource_type=item['type'], quantity=item['qty']))
