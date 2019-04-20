@@ -88,6 +88,16 @@ class ModelBuilder:
 
         return Activity(id=activity_id, name=name, distribution=distribution, data_input=data_input, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
 
+    @classmethod
+    def create_resources(cls):
+        resources = []
+        source = ET.parse('resources.xml')
+        root = source.getroot()
+        for child in root:
+            if child.tag == 'Resource':
+                resources.append(cls._parse_resource(child))
+        return resources
+
 
 
 
