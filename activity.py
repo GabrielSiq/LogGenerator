@@ -1,7 +1,7 @@
 from data_object import DataObject
 from duration import Duration
 from failure import Failure
-from resource import Resource
+from resource import ResourceRequirement
 
 
 class Activity:
@@ -15,7 +15,7 @@ class Activity:
         self.duration = Duration(distribution)
         self.data_input = DataObject.from_list(data_input)
         self.data_output = DataObject.from_list(data_input)
-        self.resources = Resource.from_list(resources)
+        self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
         self.timeout = timeout
