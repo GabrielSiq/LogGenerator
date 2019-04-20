@@ -5,7 +5,7 @@ class SimulationManager:
     @staticmethod
     def main():
         model = ModelBuilder()
-        model.create_activities()
+        list_of_activities = model.create_activities()
 
 
 SimulationManager.main()
