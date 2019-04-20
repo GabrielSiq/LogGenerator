@@ -61,7 +61,9 @@ class ModelBuilder:
             for resource in resources_child:
                 # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource.
                 try:
-                    resources.append((resource.get('id'), resource.text))
+                    res = resource.attrib
+                    res['qty'] = resource.text
+                    resources.append(res)
                 except AttributeError:
                     print('Poorly formatted resource')
 
