@@ -43,6 +43,9 @@ class Resource(ABC):
     def __init__(self, id):
         self.id = id
 
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
+
 
 class HumanResource(Resource):
     def __init__(self, id, org, dept, role, availability):
@@ -57,9 +60,9 @@ class HumanResource(Resource):
         self.current_activity_id = None
 
     def use(self, start_time, duration, process_id, activity_id):
-        if not self.busy:
+        if not self.busy and self.availability.is_available(start_time):
             self.busy = True
-            self.busy_until = start_time + timedelta(seconds=duration)
+            self.busy_until = self.availability.available_until(start_time, start_time + timedelta(seconds=duration))
             self.current_process_id = process_id
             self.current_activity_id = activity_id
         else:

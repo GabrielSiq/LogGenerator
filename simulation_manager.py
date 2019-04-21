@@ -9,5 +9,9 @@ class SimulationManager:
         for activity in list_of_activities:
             print(activity)
 
+        list_of_resources = model.create_resources()
+        for resource in list_of_resources:
+            print(resource)
+
 
 SimulationManager.main()
