@@ -10,3 +10,6 @@ class DataObject:
         for item in data_list:
             class_list.append(cls(item))
         return class_list
+
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())

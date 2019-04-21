@@ -82,7 +82,7 @@ class ModelBuilder:
         except AttributeError:
             priority = None
 
-        return Activity(id=activity_id, name=name, distribution=distribution, data_input=data_input, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
+        return Activity(id=activity_id, name=name, distribution=distribution, data_input=data_input, data_output=data_output, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
 
     @classmethod
     def create_resources(cls):

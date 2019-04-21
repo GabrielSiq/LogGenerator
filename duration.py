@@ -25,3 +25,6 @@ class Duration:
             return self.parameters['value']
         else:
             return None
+
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())

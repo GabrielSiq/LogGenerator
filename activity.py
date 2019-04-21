@@ -9,12 +9,12 @@ class Activity:
 
     ALLOWED_PRIORITIES = ['low', 'normal', 'high']
 
-    def __init__(self, id, name, distribution=None, data_input=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
+    def __init__(self, id, name, distribution=None, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
         self.data_input = DataObject.from_list(data_input)
-        self.data_output = DataObject.from_list(data_input)
+        self.data_output = DataObject.from_list(data_output)
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
@@ -36,4 +36,4 @@ class Activity:
         return self.failure.check()
 
     def __repr__(self):
-        return "Id:%s, Name:%s" % (self.id, self.name)
+        return ', '.join("%s: %s" % item for item in vars(self).items())
