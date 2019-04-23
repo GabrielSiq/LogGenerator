@@ -2,6 +2,93 @@ from data_object import DataObject
 from duration import Duration
 from failure import Failure
 from resource import ResourceRequirement
+from numpy import random
+
+
+class Process:
+
+    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions, data_objects, resources):
+        self.id = id
+        self.name = name
+        self.arrival_rate = arrival_rate
+        self.deadline = deadline
+        self.activities = {}
+        for act in activities:
+            self.activities[act.id] = act
+        self.gateways = {}
+        for gate in gateways:
+            self.gateways[gate.id] = gate
+        self.transitions = transitions
+        self.data_objects = DataObject.from_list(data_objects)
+        self.resources = resources
+
+    def get_next(self, source, gate=None):
+        if gate is None:
+            return self.transitions[source].get_next()
+        else:
+            return self.transitions[source][gate].get_next()
+
+
+class Gateway:
+
+    def __init__(self, id, name, type, gates, distribution=None, rule=None):
+        self.id = id
+        self.name = name
+        self.type = type
+        self.merge_inputs = []
+        if self.type == 'choice':
+            if rule is not None:
+                self.decider = GateRule(rule)
+            elif distribution is not None:
+                self.decider = GateDistribution(rule)
+            else:
+                print("For choice gateways, either rule or distribution must be present.")
+                raise ValueError
+        elif self.type == 'parallel':
+            self.decider = None
+        else:
+            print("Gateway type not supported.")
+            raise ValueError
+        self.gates = gates
+
+    def get_gate(self):
+        if self.type == 'parallel':
+            return self.gates
+        else:
+            return self.decider.get_gate()
+
+
+class GateRule:
+    # to be implemented in the future
+    def __init__(self, rule):
+        pass
+
+
+class GateDistribution:
+    # TODO: Add asserts in this and other functions.
+    def __init__(self, gates, pdf):
+        # gates is a list of the gate ids
+        # pdf is a list of probabilities ordered by gates
+        self.gates = gates
+        self.pdf = pdf
+        if sum(self.pdf) != 1:
+            print("Probabilities don't add to 1.")
+            raise ValueError
+
+    def get_gate(self):
+        return random.choice(self.gates, p=self.pdf)
+
+
+class Transition:
+
+    def __init__(self, source, destination, gate=None, distribution=0):
+        self.source = source
+        self.gate = gate
+        self.destination = destination
+        self.delay = Duration(distribution)
+
+    def get_next(self):
+        return self.destination, self.delay.generate()
 
 
 class Activity:
@@ -9,7 +96,7 @@ class Activity:
 
     ALLOWED_PRIORITIES = ['low', 'normal', 'high']
 
-    def __init__(self, id, name, distribution=None, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
+    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
@@ -33,7 +120,7 @@ class Activity:
         return self.duration.generate()
 
     def generate_failure(self):
-        return self.failure.check()
+        return self.failure.check_failure()
 
     def __repr__(self):
         return ', '.join("%s: %s" % item for item in vars(self).items())
