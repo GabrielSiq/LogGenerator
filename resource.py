@@ -34,9 +34,11 @@ class ResourceRequirement:
             elif item['class_type'] == 'physical':
                 class_list.append(cls.physical(resource_type=item['type'], quantity=item['qty']))
             else:
-                print('Resource class not supported.')
-                raise TypeError
+                raise TypeError('Resource class not supported.')
         return class_list
+
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
 class Resource(ABC):
@@ -66,8 +68,7 @@ class HumanResource(Resource):
             self.current_process_id = process_id
             self.current_activity_id = activity_id
         else:
-            print("Can't use a busy resource")
-            raise RuntimeError
+            raise RuntimeError("Can't use a busy resource")
 
 
 class PhysicalResource(Resource):
@@ -91,8 +92,7 @@ class PhysicalResource(Resource):
         if 0 <= amount <= self.get_quantity():
             self._add_quantity(-amount)
         else:
-            print("Can't use more than the current quantity")
-            raise AttributeError
+            raise AttributeError("Can't use more than the current quantity")
 
 
 class Availability:

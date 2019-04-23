@@ -1,28 +1,45 @@
 from activity import Activity
 from resource import HumanResource, PhysicalResource
-import xml.etree.ElementTree as ET
+from data_object import Form
+from xml.etree import ElementTree
+from collections import OrderedDict
 
 
 class ModelBuilder:
-
     @classmethod
     def create_activities(cls):
-        activities = []
-        source = ET.parse('activities.xml')
-        root = source.getroot()
+        # TODO: Add the file locations to some configuration that the model builder accesses
+        return cls._create_from_file('activities.xml', 'Activity', cls._parse_activity)
+
+    @classmethod
+    def create_resources(cls):
+        # TODO: Add the file locations to some configuration that the model builder accesses
+        return cls._create_from_file('resources.xml', 'Resource', cls._parse_resource)
+
+    @classmethod
+    def create_data(cls):
+        # TODO: Add the file locations to some configuration that the model builder accesses
+        return cls._create_from_file('data.xml', 'DataObject', cls._parse_data)
+
+    @classmethod
+    def create_process_model(cls):
+        # TODO: Add the file locations to some configuration that the model builder accesses
+        return cls._create_from_file('models.xml', 'Model', cls._parse_process_model)
+
+    @classmethod
+    def _create_from_file(cls, file_name, tag_name, parser):
+        container = []
+        root = ElementTree.parse(file_name).getroot()
         for child in root:
-            if child.tag == 'Activity':
-                activities.append(cls._parse_activity(child))
-        return activities
+            if child.tag == tag_name:
+                container.append(parser(child))
+        return container
 
     @classmethod
     def _parse_activity(cls, activity):
         activity_id = activity.get('id')
 
-        try:
-            name = activity.find('Name').text
-        except AttributeError:
-            print('No name was informed.')
+        name = activity.find('Name').text
 
         distribution = cls._parse_distribution(activity.find('Duration/Distribution'))
 
@@ -34,8 +51,7 @@ class ModelBuilder:
                 id = data_object.get('id')
                 if id is None:
                     # TODO: better way to handle custom exception
-                    print('Missing data object id.')
-                    raise AttributeError
+                    raise AttributeError('Missing data object id.')
                 data_input.append(data_object.get('id'))
 
         data_output = []
@@ -46,8 +62,8 @@ class ModelBuilder:
                 id = data_object.get('id')
                 if id is None:
                     # TODO: better way to handle custom exception
-                    print('Missing data object id.')
-                    raise AttributeError
+                    raise AttributeError('Missing data object id.')
+
                 data_output.append(data_object.get('id'))
 
         resources = []
@@ -85,16 +101,6 @@ class ModelBuilder:
         return Activity(id=activity_id, name=name, distribution=distribution, data_input=data_input, data_output=data_output, resources=resources, failure_rate=failure_rate, retries=retries, timeout=timeout, priority=priority)
 
     @classmethod
-    def create_resources(cls):
-        resources = []
-        source = ET.parse('resources.xml')
-        root = source.getroot()
-        for child in root:
-            if child.tag == 'Resource':
-                resources.append(cls._parse_resource(child))
-        return resources
-
-    @classmethod
     def _parse_resource(cls, resource):
         class_type = resource.get('type')
         id = resource.get('id')
@@ -111,8 +117,7 @@ class ModelBuilder:
             delay = cls._parse_distribution(resource.find('Delay/Distribution'))
             res = PhysicalResource(id, type, qty, delay)
         else:
-            print('Poorly formatted resource.')
-            raise AttributeError
+            raise AttributeError('Poorly formatted resource.')
         return res
 
     @classmethod
@@ -132,6 +137,35 @@ class ModelBuilder:
                     calendar.setdefault(day.tag, {})
                     calendar[day.tag][time] = True
         return calendar
+
+    @classmethod
+    def _parse_process_model(cls, model_child):
+        pass
+
+    @classmethod
+    def _parse_data(cls, data_child):
+        id = data_child.get('id')
+        type = data_child.get('type')
+
+        if type == 'form':
+            name, fields = cls._parse_form(data_child)
+            return Form(id, name, fields)
+        else:
+            raise ValueError('Data type not supported.')
+
+    @classmethod
+    def _parse_form(cls, form_child):
+        # TODO: This is the model going forward. Do NO verification on format and do xml validation on initialization.
+        name = form_child.find('Name').text
+        fields = OrderedDict()
+        for field in form_child.find('Fields'):
+            fields[field.get('name')] = field.text
+        return name, fields
+
+
+
+
+
 
 
 

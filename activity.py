@@ -1,4 +1,4 @@
-from data_object import DataObject
+from data_object import DataRequirement
 from duration import Duration
 from failure import Failure
 from resource import ResourceRequirement
@@ -19,10 +19,11 @@ class Process:
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
-        self.data_objects = DataObject.from_list(data_objects)
+        self.data_objects = DataRequirement.from_list(data_objects)
         self.resources = resources
 
     def get_next(self, source, gate=None):
+        # returns next activity or gateway id and the delay of the transition
         if gate is None:
             return self.transitions[source].get_next()
         else:
@@ -42,13 +43,11 @@ class Gateway:
             elif distribution is not None:
                 self.decider = GateDistribution(rule)
             else:
-                print("For choice gateways, either rule or distribution must be present.")
-                raise ValueError
+                raise ValueError("For choice gateways, either rule or distribution must be present.")
         elif self.type == 'parallel':
             self.decider = None
         else:
-            print("Gateway type not supported.")
-            raise ValueError
+            raise ValueError("Gateway type not supported.")
         self.gates = gates
 
     def get_gate(self):
@@ -72,8 +71,7 @@ class GateDistribution:
         self.gates = gates
         self.pdf = pdf
         if sum(self.pdf) != 1:
-            print("Probabilities don't add to 1.")
-            raise ValueError
+            raise ValueError("Probabilities don't add to 1.")
 
     def get_gate(self):
         return random.choice(self.gates, p=self.pdf)
@@ -100,8 +98,8 @@ class Activity:
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
-        self.data_input = DataObject.from_list(data_input)
-        self.data_output = DataObject.from_list(data_output)
+        self.data_input = DataRequirement.from_list(data_input)
+        self.data_output = DataRequirement.from_list(data_output)
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
@@ -112,8 +110,7 @@ class Activity:
             self.priority = priority.lower()
         else:
             # TODO: Add more helpful error messages.
-            print('Priority value not allowed.')
-            raise TypeError
+            raise TypeError('Priority value not allowed.')
 
     def generate_duration(self):
         # Returns an instance of the randomly generated duration time
