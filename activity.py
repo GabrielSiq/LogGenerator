@@ -12,9 +12,7 @@ class Process:
         self.name = name
         self.arrival_rate = arrival_rate
         self.deadline = deadline
-        self.activities = {}
-        for act in activities:
-            self.activities[act.id] = act
+        self.activities = activities
         self.gateways = {}
         for gate in gateways:
             self.gateways[gate.id] = gate
@@ -29,9 +27,11 @@ class Process:
         else:
             return self.transitions[source][gate].get_next()
 
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
+
 
 class Gateway:
-
     def __init__(self, id, name, type, gates, distribution=None, rule=None):
         self.id = id
         self.name = name
@@ -39,9 +39,9 @@ class Gateway:
         self.merge_inputs = []
         if self.type == 'choice':
             if rule is not None:
-                self.decider = GateRule(rule)
+                self.decider = GateRule(gates, rule)
             elif distribution is not None:
-                self.decider = GateDistribution(rule)
+                self.decider = GateDistribution(gates, distribution)
             else:
                 raise ValueError("For choice gateways, either rule or distribution must be present.")
         elif self.type == 'parallel':
@@ -56,11 +56,17 @@ class Gateway:
         else:
             return self.decider.get_gate()
 
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
+
 
 class GateRule:
     # to be implemented in the future
     def __init__(self, rule):
         pass
+
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
 class GateDistribution:
@@ -69,12 +75,15 @@ class GateDistribution:
         # gates is a list of the gate ids
         # pdf is a list of probabilities ordered by gates
         self.gates = gates
-        self.pdf = pdf
+        self.pdf = list(map(float, pdf))
         if sum(self.pdf) != 1:
             raise ValueError("Probabilities don't add to 1.")
 
     def get_gate(self):
         return random.choice(self.gates, p=self.pdf)
+
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
 class Transition:
@@ -88,10 +97,13 @@ class Transition:
     def get_next(self):
         return self.destination, self.delay.generate()
 
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
+
 
 class Activity:
     # Activities contained in process models
-
+    # TODO: add instance ids to all classes (or maybe only when they're on the queue running, maybe thats better)
     ALLOWED_PRIORITIES = ['low', 'normal', 'high']
 
     def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
@@ -118,6 +130,10 @@ class Activity:
 
     def generate_failure(self):
         return self.failure.check_failure()
+
+    def update(self, fields):
+        for key, value in fields.items():
+            setattr(self, key, value)
 
     def __repr__(self):
         return ', '.join("%s: %s" % item for item in vars(self).items())

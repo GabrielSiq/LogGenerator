@@ -17,6 +17,10 @@ class SimulationManager:
         list_of_data = model.create_data()
         for data in list_of_data:
             print(data)
+        print("\nParsing models:")
+        list_of_models = model.create_process_model()
+        for process in list_of_models:
+            print(process)
 
 
 SimulationManager.main()
