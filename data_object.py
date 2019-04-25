@@ -7,11 +7,11 @@ class DataRequirement:
 
     @classmethod
     def from_list(cls, data_list):
-        if data_list is None:
+        if data_list is None or data_list == []:
             return None
         class_list = []
         for item in data_list:
-            class_list.append(cls(item))
+            class_list.append(cls(item['id']))
         return class_list
 
     def __repr__(self):

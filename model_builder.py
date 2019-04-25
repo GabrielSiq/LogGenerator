@@ -59,11 +59,19 @@ class ModelBuilder:
         # TODO: Add some checking to verify that the children objects are what we think they are.
         if data_input_child is not None:
             for data_object in data_input_child:
+                data = dict()
                 id = data_object.get('id')
                 if id is None:
                     # TODO: better way to handle custom exception
                     raise AttributeError('Missing data object id.')
-                data_input.append(data_object.get('id'))
+                data['id'] = id
+                if data_object.get('type') == 'form':
+                    fields_child = data_object.find('Fields')
+                    if fields_child is not None:
+                        data['fields'] = dict()
+                        for field in fields_child:
+                            data['fields'][field.get('name')] = field.text
+                data_input.append(data)
 
         fields['data_input'] = data_input
 
@@ -72,12 +80,19 @@ class ModelBuilder:
 
         if data_output_child is not None:
             for data_object in data_output_child:
+                data = dict()
                 id = data_object.get('id')
                 if id is None:
                     # TODO: better way to handle custom exception
                     raise AttributeError('Missing data object id.')
-
-                data_output.append(data_object.get('id'))
+                data['id'] = id
+                if data_object.get('type') == 'form':
+                    fields_child = data_object.find('Fields')
+                    if fields_child is not None:
+                        data['fields'] = dict()
+                        for field in fields_child:
+                            data['fields'][field.get('name')] = field.text
+                data_output.append(data)
         fields['data_output'] = data_output
 
         resources = []
@@ -167,8 +182,8 @@ class ModelBuilder:
             gateways.append(self._parse_gateway(gateway))
         transitions = []
         activities = dict()
-        resources = set()
-        data_objects = set()
+        resources = dict()
+        data_objects = dict()
         for transition in model_child.find('Transitions'):
             transition_object = self._parse_transition(transition)
             transitions.append(transition_object)
@@ -187,16 +202,16 @@ class ModelBuilder:
             # TODO: check if this works
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)
-        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions, data_objects=data_objects, resources=resources)
+        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions, data_objects=list(data_objects.values()), resources=list(resources.values()))
 
     @classmethod
     def _parse_from_existing(cls, item, resources, data_objects):
         for resource in (item.resources or []):
-            resources.add(resource)
+            resources[resource.id] = resource
         for data_object in (item.data_input or []):
-            data_objects.add(data_object)
+            data_objects[data_object.id] = data_object
         for data_object in (item.data_output or []):
-            data_objects.add(data_object)
+            data_objects[data_object.id] = data_object
         return resources, data_objects
 
     @classmethod

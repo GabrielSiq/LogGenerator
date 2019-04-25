@@ -17,7 +17,7 @@ class Process:
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
-        self.data_objects = DataRequirement.from_list(data_objects)
+        self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         self.resources = resources
 
     def get_next(self, source, gate=None):
