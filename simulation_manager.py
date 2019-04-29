@@ -1,4 +1,6 @@
+from data_object import DataManager
 from model_builder import ModelBuilder
+from resource import ResourceManager
 
 
 class SimulationManager:
@@ -21,6 +23,9 @@ class SimulationManager:
         list_of_models = model.create_process_model()
         for process in list_of_models:
             print(process)
+        print("\nTesting data manager:")
+        test = DataManager(list_of_data)
+        print(test.read_object('app', fields=['HostChecklist', 'InspectionReport']))
 
 
 SimulationManager.main()
