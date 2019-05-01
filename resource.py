@@ -35,7 +35,7 @@ class ResourceManager:
         # Assigns any necessary number of human resources to a process based on the given requirement.
         # TODO: only handling one person working until the end. need to handle resource changes. Or maybe we can leave that to the simulation manager...
         result = {}
-        if self.check_availability(requirement, start_time) is True:
+        if self.check_availability(requirement, start_time, end_time=start_time + timedelta(seconds=duration)) is True:
             available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
             for i in range(requirement.quantity):
                 result.update(self._assign_individual_human(available[i].id, start_time, duration, process_id, activity_id))
@@ -93,7 +93,6 @@ class ResourceManager:
         result = []
         for resource in self.human_resources:
             if (role is None or resource.role == role) and (dept is None or resource.dept == dept) and org is not None and resource.org == org and (available is None or resource.is_available(start_time) == available):
-                print(resource.role)
                 result.append(resource)
         return sorted(result, key=lambda x: x.available_until(start_time, end_time))
 
