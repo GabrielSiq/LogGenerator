@@ -7,7 +7,7 @@ from numpy import random
 
 class Process:
 
-    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions, data_objects, resources):
+    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions):
         self.id = id
         self.name = name
         self.arrival_rate = arrival_rate
@@ -17,8 +17,8 @@ class Process:
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
-        self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
-        self.resources = resources
+        # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
+        # self.resources = resources
 
     def get_next(self, source, gate=None):
         # returns next activity or gateway id and the delay of the transition

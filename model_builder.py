@@ -107,7 +107,7 @@ class ModelBuilder:
                     resources.append(res)
                 except AttributeError:
                     print('Poorly formatted resource')
-        fields['resource'] = resources
+        fields['resources'] = resources
         failure_rate = None
         retries = None
         failure_child = activity_child.find('FailureRate')
@@ -147,7 +147,9 @@ class ModelBuilder:
         elif class_type == 'physical':
             type = resource_child.find('Type').text
             delay = self._parse_distribution(resource_child.find('Delay/Distribution'))
-            res = PhysicalResource(id, type, qty, delay)
+            cons = True if resource_child.get('consumable').lower() == "true" else False
+            res = PhysicalResource(id, type, qty, delay, cons)
+
         else:
             raise AttributeError('Poorly formatted resource.')
         return res
@@ -182,7 +184,7 @@ class ModelBuilder:
             gateways.append(self._parse_gateway(gateway))
         transitions = []
         activities = dict()
-        resources = dict()
+        # resources = dict()
         data_objects = dict()
         for transition in model_child.find('Transitions'):
             transition_object = self._parse_transition(transition)
@@ -192,22 +194,22 @@ class ModelBuilder:
                 source = self._clone_activity(transition_object.source)
                 if source is not None:
                     activities[source.id] = source
-                    resources, data_objects = self._parse_from_existing(source, resources, data_objects)
+                    # resources, data_objects = self._parse_from_existing(source, resources, data_objects)
             if transition_object.destination not in activities:
                 destination = self._clone_activity(transition_object.destination)
                 if destination is not None:
                     activities[destination.id] = destination
-                    resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
+                    # resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
         for act in model_child.find('Activities'):
             # TODO: check if this works
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)
-        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions, data_objects=list(data_objects.values()), resources=list(resources.values()))
+        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions) # , data_objects=list(data_objects.values()), resources=list(resources.values())
 
     @classmethod
     def _parse_from_existing(cls, item, resources, data_objects):
         for resource in (item.resources or []):
-            resources[resource.id] = resource
+            resources.append(resource)
         for data_object in (item.data_input or []):
             data_objects[data_object.id] = data_object
         for data_object in (item.data_output or []):

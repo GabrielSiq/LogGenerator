@@ -1,6 +1,7 @@
 from data_object import DataManager
 from model_builder import ModelBuilder
 from resource import ResourceManager
+from datetime import datetime, timedelta
 
 
 class SimulationManager:
@@ -24,8 +25,13 @@ class SimulationManager:
         for process in list_of_models:
             print(process)
         print("\nTesting data manager:")
-        test = DataManager(list_of_data)
-        print(test.read_object('app', fields=['HostChecklist', 'InspectionReport']))
+        dm = DataManager(list_of_data)
+        rm = ResourceManager(list_of_resources)
+
+        req = model.activities['quality'].resources[0]
+
+        print(rm.get_available(req, datetime.now() - timedelta(hours=3), datetime.now() - timedelta(hours=2)))
+
 
 
 SimulationManager.main()
