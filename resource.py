@@ -1,13 +1,11 @@
 from datetime import timedelta, datetime
-from abc import ABC, abstractmethod # TODO: Review if abstract is necessary
-from calendar import day_name
 from heapq import heappush, heappop
-
+from config import RESOURCE_TYPES, DAYS
 from duration import Duration
 
 
 class ResourceManager:
-
+    # Initialization and instance variables
     def __init__(self, resources):
         self.human_resources = []
         self.physical_resources = []
@@ -17,6 +15,7 @@ class ResourceManager:
             elif isinstance(resource, PhysicalResource):
                 self.physical_resources.append(resource)
 
+    # Public methods
     def assign_resource(self, requirement, process_id, activity_id, start_time=None, duration=None):
         """
         :param requirement: A ResourceRequirement object
@@ -31,6 +30,19 @@ class ResourceManager:
         else:
             return self._assign_human(requirement, process_id, activity_id, start_time, duration)
 
+    def check_availability(self, requirement, start_time, end_time):
+        available = self.get_available(requirement, start_time, end_time)
+        if requirement.class_type == RESOURCE_TYPES['physical']:
+            return sum(x.get_quantity() for x in available) >= requirement.quantity
+        elif requirement.class_type == RESOURCE_TYPES['human']:
+            return len(available) >= requirement.quantity
+        else:
+            raise ValueError("Resource type %s not supported." % requirement.class_type)
+
+    def get_available(self, requirement, start_time=None, end_time=None):
+        return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
+
+    # Private methods
     def _assign_human(self, requirement, process_id, activity_id, start_time, duration):
         # Assigns any necessary number of human resources to a process based on the given requirement.
         # TODO: only handling one person working until the end. need to handle resource changes. Or maybe we can leave that to the simulation manager...
@@ -61,26 +73,13 @@ class ResourceManager:
         self.human_resources[resource_id].use(start_time=start_time, duration=duration, process_id=process_id, activity_id=activity_id)
         return {resource_id: 1}
 
-    def check_availability(self, requirement, start_time, end_time):
-        available = self.get_available(requirement, start_time, end_time)
-        if requirement.class_type == 'physical':
-            return sum(x.get_quantity() for x in available) >= requirement.quantity
-        elif requirement.class_type == 'human':
-            return len(available) >= requirement.quantity
-        else:
-            raise ValueError("Resource type not supported.")
-
-    def get_available(self, requirement, start_time=None, end_time=None):
-        return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
-
     def _search(self, type, org=None, dept=None, role=None, physical_type=None, available=None, start_time=None, end_time=None, amount=0):
-        # TODO: Add to master list of types
-        if type == 'physical':
+        if type == RESOURCE_TYPES['physical']:
             return self._search_physical(type=physical_type, available=available, start_time=start_time, amount=amount)
-        elif type == 'human':
+        elif type == RESOURCE_TYPES['human']:
             return self._search_human(org=org, dept=dept, role=role, available=available, start_time=start_time, end_time=end_time)
         else:
-            raise ValueError("Resource type not supported.")
+            raise ValueError("Resource type %s not supported." % type)
 
     def _search_physical(self, type, start_time, amount, available=None):
         result = []
@@ -98,7 +97,7 @@ class ResourceManager:
 
 
 class ResourceRequirement:
-
+    # Initialization and instance variables
     def __init__(self, class_type, physical_type=None, quantity=None, org=None, dept=None, role=None):
         self.class_type = class_type
         self.physical_type = physical_type
@@ -107,9 +106,10 @@ class ResourceRequirement:
         self.dept = dept
         self.role = role
 
+    # Public methods
     @classmethod
     def physical(cls, physical_type, quantity):
-        return cls('physical', physical_type=physical_type, quantity=quantity)
+        return cls(RESOURCE_TYPES['physical'], physical_type=physical_type, quantity=quantity)
 
     @classmethod
     def human(cls, org, quantity=0, dept=None, role=None):
@@ -117,7 +117,7 @@ class ResourceRequirement:
             raise ValueError("Organization has to be specified for resource.")
         elif dept is None and role is not None:
             raise ValueError("Role can only be specified within an organization and a department.")
-        return cls('human', quantity=quantity, org=org, dept=dept, role=role)
+        return cls(RESOURCE_TYPES['human'], quantity=quantity, org=org, dept=dept, role=role)
 
     @classmethod
     def from_list(cls, resource_list):
@@ -125,27 +125,31 @@ class ResourceRequirement:
             return None
         class_list = []
         for item in resource_list:
-            if item['class_type'] == 'human':
+            if item['class_type'] == RESOURCE_TYPES['human']:
                 class_list.append(cls.human(quantity=item['qty'], org=item['org'], dept=item['dept'], role=item['role']))
-            elif item['class_type'] == 'physical':
+            elif item['class_type'] == RESOURCE_TYPES['physical']:
                 class_list.append(cls.physical(physical_type=item['type'], quantity=item['qty']))
             else:
-                raise TypeError('Resource class not supported.')
+                raise TypeError('Resource class %s not supported.' % item['class_type'])
         return class_list
 
+    # Private methods
     def __repr__(self):
         return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
-class Resource(ABC):
+class Resource:
+    # Initialization and instance variables
     def __init__(self, id):
         self.id = id
 
+    # Private methods
     def __repr__(self):
         return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
 class HumanResource(Resource):
+    # Initialization and instance variables
     def __init__(self, id, org, dept, role, availability):
         Resource.__init__(self, id)
         self.org = org
@@ -156,6 +160,7 @@ class HumanResource(Resource):
         self.current_process_id = None
         self.current_activity_id = None
 
+    # Public methods
     def use(self, start_time, duration, process_id, activity_id):
         end_time = start_time + timedelta(seconds=duration)
         if self.busy_until <= start_time and self.availability.is_available(start_time) and self.availability.available_until(start_time, end_time) >= end_time:
@@ -163,7 +168,7 @@ class HumanResource(Resource):
             self.current_process_id = process_id
             self.current_activity_id = activity_id
         else:
-            raise RuntimeError("Can't use a busy resource")
+            raise RuntimeError("Resource %s is busy and cannot be used." % self.id)
 
     def is_available(self, start_time):
         return self.busy_until < start_time and self.availability.is_available(start_time)
@@ -176,6 +181,7 @@ class HumanResource(Resource):
 
 
 class PhysicalResource(Resource):
+    # Initialization and instance variables
     def __init__(self, id, type, quantity, delay, consumable):
         Resource.__init__(self, id=id)
         self.type = type
@@ -184,12 +190,9 @@ class PhysicalResource(Resource):
         self.delay = Duration(delay)
         self.consumable = consumable
 
+    # Public methods
     def get_quantity(self):
         return self.quantity
-
-    def _add_quantity(self, amount):
-        self.quantity += amount
-        return True
 
     def replenish(self, amount):
         if amount >= 0:
@@ -208,7 +211,6 @@ class PhysicalResource(Resource):
         else:
             raise AttributeError("Can't use more than the current quantity")
 
-    # TODO: Order public and private functions for all classes.
     def check_free(self, start_time, amount, free=False):
         # Checks the amount of free resources at a specific time, up to a certain maximum amount desired. If free is True, also free the resources for use.
         next = heappop(self.busy) # Gets the first batch of resources to become free
@@ -236,13 +238,20 @@ class PhysicalResource(Resource):
                 heappush(self.busy, (used.pop()[0], refund))
         return amount - max(needed, 0)
 
+    # Private methods
+    def _add_quantity(self, amount):
+        self.quantity += amount
+        return True
+
 
 class Availability:
+    # Initialization and instance variables
     def __init__(self, availability):
         self.calendar = availability
 
+    # Public methods
     def is_available(self, date_and_time):
-        weekday = day_name[date_and_time.weekday()][:3]
+        weekday = DAYS[date_and_time.weekday()]
         hour = date_and_time.hour
         if weekday in self.calendar:
             return hour in self.calendar[weekday].keys()

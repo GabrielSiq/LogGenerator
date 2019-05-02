@@ -1,18 +1,26 @@
 from activity import Activity, Gateway, Transition, Process
-from resource import HumanResource, PhysicalResource
-from data_object import Form
+from config import RESOURCE_TYPES, DATA_TYPES
+from resource import HumanResource, PhysicalResource, ResourceManager
+from data_object import Form, DataManager
 from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
 
 class ModelBuilder:
-
+    # Initialization and instance variables
     def __init__(self):
         self.activities = dict()
         activity_list = self.create_activities()
         for act in activity_list:
             self.activities[act.id] = act
+
+    # Public methods
+    def build_all(self):
+        rm = ResourceManager(self.create_resources())
+        dm = DataManager(self.create_data())
+        #pm =
+        return rm, dm
 
     def create_activities(self):
         # TODO: Add the file locations to some configuration that the model builder accesses
@@ -30,7 +38,9 @@ class ModelBuilder:
         # TODO: Add the file locations to some configuration that the model builder accesses
         return self._create_from_file('models.xml', 'Model', self._parse_process_model)
 
-    def _create_from_file(self, file_name, tag_name, parser):
+    # Private methods
+    @staticmethod
+    def _create_from_file(file_name, tag_name, parser):
         container = []
         root = ElementTree.parse(file_name).getroot()
         for child in root:
@@ -138,24 +148,24 @@ class ModelBuilder:
         id = resource_child.get('id')
         qty = resource_child.find('Quantity').text
 
-        if class_type == 'human':
+        if class_type == RESOURCE_TYPES['human']:
             org = resource_child.find('Organization').text
             dept = resource_child.find('Department').text
             role = resource_child.find('Role').text
             availability = self._parse_calendar(resource_child.find('Availability'))
             res = HumanResource(id, org, dept, role, availability)
-        elif class_type == 'physical':
+        elif class_type == RESOURCE_TYPES['physical']:
             type = resource_child.find('Type').text
             delay = self._parse_distribution(resource_child.find('Delay/Distribution'))
             cons = True if resource_child.get('consumable').lower() == "true" else False
             res = PhysicalResource(id, type, qty, delay, cons)
 
         else:
-            raise AttributeError('Poorly formatted resource.')
+            raise AttributeError("Resource type %s not supported." % class_type)
         return res
 
-    @classmethod
-    def _parse_distribution(cls, distribution_child):
+    @staticmethod
+    def _parse_distribution(distribution_child):
         if distribution_child is None:
             return None
         try:
@@ -164,8 +174,8 @@ class ModelBuilder:
         except AttributeError:
             print('Poorly formatted duration.')
 
-    @classmethod
-    def _parse_calendar(cls, availability_child):
+    @staticmethod
+    def _parse_calendar(availability_child):
         calendar = {}
         for day in availability_child:
             for block in day:
@@ -201,13 +211,12 @@ class ModelBuilder:
                     activities[destination.id] = destination
                     # resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
         for act in model_child.find('Activities'):
-            # TODO: check if this works
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)
         return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions) # , data_objects=list(data_objects.values()), resources=list(resources.values())
 
-    @classmethod
-    def _parse_from_existing(cls, item, resources, data_objects):
+    @staticmethod
+    def _parse_from_existing(item, resources, data_objects):
         for resource in (item.resources or []):
             resources.append(resource)
         for data_object in (item.data_input or []):
@@ -216,8 +225,8 @@ class ModelBuilder:
             data_objects[data_object.id] = data_object
         return resources, data_objects
 
-    @classmethod
-    def _parse_gateway(cls, gateway_child):
+    @staticmethod
+    def _parse_gateway(gateway_child):
         id = gateway_child.get('id')
         name = gateway_child.find('Name').text
         type = gateway_child.find('Type').text.lower()
@@ -258,14 +267,14 @@ class ModelBuilder:
         id = data_child.get('id')
         type = data_child.get('type')
 
-        if type == 'form':
+        if type == DATA_TYPES['form']:
             name, fields = self._parse_form(data_child)
             return Form(id, name, fields)
         else:
-            raise ValueError('Data type not supported.')
+            raise ValueError('Data type %s not supported.' % type)
 
-    @classmethod
-    def _parse_form(cls, form_child):
+    @staticmethod
+    def _parse_form(form_child):
         # TODO: This is the model going forward. Do NO verification on format and do xml validation on initialization.
         name = form_child.find('Name').text
         fields = OrderedDict()

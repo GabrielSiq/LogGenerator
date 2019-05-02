@@ -2,7 +2,7 @@ from numpy import random
 
 
 class Duration:
-
+    # Initialization and instance variables
     def __init__(self, distribution):
         if type(distribution) is dict:
             self.type = distribution['type']
@@ -12,6 +12,7 @@ class Duration:
             self.type = 'const'
             self.parameters = {'value': distribution if distribution is not None else 0}
 
+    # Public methods
     def generate(self):
         if self.type == 'normal':
             return random.normal(loc=self.parameters['mean'], scale=self.parameters['variance'])
@@ -26,5 +27,6 @@ class Duration:
         else:
             return None
 
+    # Private Methods
     def __repr__(self):
         return ', '.join("%s: %s" % item for item in vars(self).items())

@@ -1,10 +1,14 @@
-from data_object import DataManager
+from heapq import heappush, heappop
 from model_builder import ModelBuilder
-from resource import ResourceManager
 from datetime import datetime, timedelta
 
 
 class SimulationManager:
+    # Initialization and instance variables
+    def __init__(self):
+        self.log = []
+
+    #Public methods
     @staticmethod
     def main():
         model = ModelBuilder()
@@ -25,13 +29,33 @@ class SimulationManager:
         for process in list_of_models:
             print(process)
         print("\nTesting data manager:")
-        dm = DataManager(list_of_data)
-        rm = ResourceManager(list_of_resources)
+        rm, dm = model.build_all()
 
         req = model.activities['quality'].resources[0]
 
         print(rm.get_available(req, datetime.now() - timedelta(hours=3), datetime.now() - timedelta(hours=2)))
 
 
-
 SimulationManager.main()
+
+
+class ExecutionQueue:
+    # Initialization and instance variables
+    def __init__(self):
+        self.queue = []
+
+    # Public methods
+    def push(self, item):
+        heappush(self.queue, item)
+
+    def pop(self):
+        heappop(self.queue)
+
+    def is_empty(self):
+        return len(self.queue) == 0
+
+
+
+
+
+
