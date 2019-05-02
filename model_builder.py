@@ -1,15 +1,21 @@
 from activity import Activity, Gateway, Transition, Process
-from config import RESOURCE_TYPES, DATA_TYPES
+from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_FILES, FILE_ROOT, GATEWAY_TYPES
 from resource import HumanResource, PhysicalResource, ResourceManager
 from data_object import Form, DataManager
 from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
+# TODO: Implement XML validation.
+
 
 class ModelBuilder:
     # Initialization and instance variables
-    def __init__(self):
+    def __init__(self, activities_file=DEFAULT_FILES['activities'], resources_file=DEFAULT_FILES['resources'], data_file=DEFAULT_FILES['data'], models_file=DEFAULT_FILES['models']):
+        self.activities_file = activities_file
+        self.resources_file = resources_file
+        self.data_file = data_file
+        self.models_file = models_file
         self.activities = dict()
         activity_list = self.create_activities()
         for act in activity_list:
@@ -19,24 +25,20 @@ class ModelBuilder:
     def build_all(self):
         rm = ResourceManager(self.create_resources())
         dm = DataManager(self.create_data())
-        #pm =
+        # pm =
         return rm, dm
 
     def create_activities(self):
-        # TODO: Add the file locations to some configuration that the model builder accesses
-        return self._create_from_file('activities.xml', 'Activity', self._parse_activity)
+        return self._create_from_file(self.activities_file, FILE_ROOT['activities'], self._parse_activity)
 
     def create_resources(self):
-        # TODO: Add the file locations to some configuration that the model builder accesses
-        return self._create_from_file('resources.xml', 'Resource', self._parse_resource)
+        return self._create_from_file(self.resources_file, FILE_ROOT['resources'], self._parse_resource)
 
     def create_data(self):
-        # TODO: Add the file locations to some configuration that the model builder accesses
-        return self._create_from_file('data.xml', 'DataObject', self._parse_data)
+        return self._create_from_file(self.data_file, FILE_ROOT['data'], self._parse_data)
 
     def create_process_model(self):
-        # TODO: Add the file locations to some configuration that the model builder accesses
-        return self._create_from_file('models.xml', 'Model', self._parse_process_model)
+        return self._create_from_file(self.models_file, FILE_ROOT['models'], self._parse_process_model)
 
     # Private methods
     @staticmethod
@@ -66,13 +68,12 @@ class ModelBuilder:
 
         data_input = []
         data_input_child = activity_child.find('DataInput')
-        # TODO: Add some checking to verify that the children objects are what we think they are.
+
         if data_input_child is not None:
             for data_object in data_input_child:
                 data = dict()
                 id = data_object.get('id')
                 if id is None:
-                    # TODO: better way to handle custom exception
                     raise AttributeError('Missing data object id.')
                 data['id'] = id
                 if data_object.get('type') == 'form':
@@ -93,7 +94,6 @@ class ModelBuilder:
                 data = dict()
                 id = data_object.get('id')
                 if id is None:
-                    # TODO: better way to handle custom exception
                     raise AttributeError('Missing data object id.')
                 data['id'] = id
                 if data_object.get('type') == 'form':
@@ -230,11 +230,11 @@ class ModelBuilder:
         id = gateway_child.get('id')
         name = gateway_child.find('Name').text
         type = gateway_child.find('Type').text.lower()
-        # TODO: transform all these type names in enums so they can be easily modified at one place
         gates = []
         distribution = None
         rule = None
-        if type == 'choice':
+        # TODO: Deal with parallel and merge.
+        if type == GATEWAY_TYPES['choice']:
             distribution_child = gateway_child.find('Distribution')
             rule_child = gateway_child.find('Rule')
             if distribution_child is not None and len(list(distribution_child)):
@@ -275,7 +275,6 @@ class ModelBuilder:
 
     @staticmethod
     def _parse_form(form_child):
-        # TODO: This is the model going forward. Do NO verification on format and do xml validation on initialization.
         name = form_child.find('Name').text
         fields = OrderedDict()
         for field in form_child.find('Fields'):
