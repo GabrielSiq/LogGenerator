@@ -13,6 +13,8 @@ class ProcessManager:
 
 
 class Process:
+    instance = 0
+
     # Initialization and instance variables
     def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions):
         self.id = id
@@ -20,20 +22,45 @@ class Process:
         self.arrival_rate = arrival_rate
         self.deadline = deadline
         self.activities = activities
-        self.gateways = {}
+        self.gateways = dict()
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
+        print(self.transitions)
         # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         # self.resources = resources
 
     # Public methods
+
+    def get_arrival_rate(self, day, hour):
+        # TODO: Improve modeling of arrival rate to allow for various levels of granularity
+        # For now, arrival rate is only represented in terms of instances per hour.
+        try:
+            return int(self.arrival_rate[day][hour])
+        except KeyError:
+            return 0
+
+    def get_first_activity(self):
+        return self.get_next('START')
+
+
+    @classmethod
+    def new(cls):
+        cls.instance += 1
+
     def get_next(self, source, gate=None):
         # returns next activity or gateway id and the delay of the transition
-        if gate is None:
-            return self.transitions[source].get_next()
-        else:
-            return self.transitions[source][gate].get_next()
+        # For list structure
+        for transition in self.transitions:
+            if transition.source == source and (gate is None or transition.gate == gate):
+                return transition.get_next()
+            else:
+                return self.transitions[source][gate].get_next()
+        # For dict structure
+        # if gate is None:
+        #     return self.transitions[source].get_next()
+        # else:
+        #     return self.transitions[source][gate].get_next()
 
     # Private methods
     def __repr__(self):

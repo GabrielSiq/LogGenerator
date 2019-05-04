@@ -1,5 +1,5 @@
 from activity import Activity, Gateway, Transition, Process
-from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_FILES, FILE_ROOT, GATEWAY_TYPES
+from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_PATHS, FILE_ROOT, GATEWAY_TYPES
 from resource import HumanResource, PhysicalResource, ResourceManager
 from data_object import Form, DataManager
 from xml.etree import ElementTree
@@ -11,7 +11,7 @@ from copy import deepcopy
 
 class ModelBuilder:
     # Initialization and instance variables
-    def __init__(self, activities_file=DEFAULT_FILES['activities'], resources_file=DEFAULT_FILES['resources'], data_file=DEFAULT_FILES['data'], models_file=DEFAULT_FILES['models']):
+    def __init__(self, activities_file=DEFAULT_PATHS['activities'], resources_file=DEFAULT_PATHS['resources'], data_file=DEFAULT_PATHS['data'], models_file=DEFAULT_PATHS['models']):
         self.activities_file = activities_file
         self.resources_file = resources_file
         self.data_file = data_file
