@@ -1,4 +1,7 @@
-from activity import Activity, Gateway, Transition, Process
+from activity import Activity
+from transition import Transition
+from gateway import Gateway
+from process import Process
 from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_PATHS, FILE_ROOT, GATEWAY_TYPES
 from resource import HumanResource, PhysicalResource, ResourceManager
 from data_object import Form, DataManager
