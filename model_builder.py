@@ -64,7 +64,8 @@ class ModelBuilder:
         except AttributeError:
             pass
 
-        fields['distribution'] = self._parse_distribution(activity_child.find('Duration/Distribution'))
+        if activity_child.find('Duration/Distribution') is not None:
+            fields['distribution'] = self._parse_distribution(activity_child.find('Duration/Distribution'))
 
         data_input = []
         data_input_child = activity_child.find('DataInput')
@@ -83,8 +84,7 @@ class ModelBuilder:
                         for field in fields_child:
                             data['fields'][field.get('name')] = field.text
                 data_input.append(data)
-
-        fields['data_input'] = data_input
+            fields['data_input'] = data_input
 
         data_output = []
         data_output_child = activity_child.find('DataOutput')
@@ -103,7 +103,7 @@ class ModelBuilder:
                         for field in fields_child:
                             data['fields'][field.get('name')] = field.text
                 data_output.append(data)
-        fields['data_output'] = data_output
+            fields['data_output'] = data_output
 
         resources = []
         resources_child = activity_child.find('Resources')
@@ -117,29 +117,26 @@ class ModelBuilder:
                     resources.append(res)
                 except AttributeError:
                     print('Poorly formatted resource')
-        fields['resources'] = resources
-        failure_rate = None
-        retries = None
+            fields['resources'] = resources
+
         failure_child = activity_child.find('FailureRate')
 
         if failure_child is not None:
             failure_rate = failure_child.text
             retries = failure_child.get('retries')
-        fields['failure_rate'] = failure_rate
-        fields['retries'] = retries
+            fields['failure_rate'] = failure_rate
+            fields['retries'] = retries
 
         # TODO: implement similar try/except methodology for others.
         try:
-            timeout = activity_child.find('Timeout').text
+            fields['timeout'] = activity_child.find('Timeout').text
         except AttributeError:
-            timeout = None
-        fields['timeout'] = timeout
+            pass
 
         try:
-            priority = activity_child.find('Priority').text
+            fields['priority'] = activity_child.find('Priority').text
         except AttributeError:
-            priority = None
-        fields['priority'] = priority
+            pass
 
         return fields
 
@@ -210,6 +207,7 @@ class ModelBuilder:
                 if destination is not None:
                     activities[destination.id] = destination
                     # resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
+        print('new test', activities)
         for act in model_child.find('Activities'):
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)

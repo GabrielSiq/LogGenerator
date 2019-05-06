@@ -12,7 +12,19 @@ class ProcessManager:
         pass
 
 
+class ProcessInstance:
+    def __init__(self, pid, piid, process_reference):
+        self.process_id = pid
+        self.process_instance_id = piid
+        self.process_reference = process_reference
+
+    # Private methods
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
+
+
 class Process:
+    # Class variables
     instance = 0
 
     # Initialization and instance variables
@@ -26,7 +38,6 @@ class Process:
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
-        print(self.transitions)
         # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         # self.resources = resources
 
@@ -43,19 +54,17 @@ class Process:
     def get_first_activity(self):
         return self.get_next('START')
 
-
-    @classmethod
-    def new(cls):
-        cls.instance += 1
+    def new(self):
+        Process.instance += 1
+        return ProcessInstance(self.id, self.instance, self)
 
     def get_next(self, source, gate=None):
         # returns next activity or gateway id and the delay of the transition
         # For list structure
         for transition in self.transitions:
             if transition.source == source and (gate is None or transition.gate == gate):
-                return transition.get_next()
-            else:
-                return self.transitions[source][gate].get_next()
+                (act, delay) = transition.get_next()
+                return self.activities[act], delay
         # For dict structure
         # if gate is None:
         #     return self.transitions[source].get_next()

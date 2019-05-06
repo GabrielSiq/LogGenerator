@@ -16,6 +16,7 @@ class SimulationManager:
         self.start = start
         self.end = end
         self.queue = ExecutionQueue()
+        self.running_processes = []
         print(str(start), str(end))
 
     # Public methods
@@ -44,16 +45,19 @@ class SimulationManager:
         req = model.activities['quality'].resources[0]
 
         print(rm.get_available(req, datetime.now() - timedelta(hours=3), datetime.now() - timedelta(hours=2)))
-        log_list = []
-        log_list.append(LogItem(datetime.now(),1,1,5,1,'start'))
-        log_list.append(LogItem(datetime.now()+timedelta(minutes=3), 1, 2, 3, 1, 'start'))
-        log_list.append(LogItem(datetime.now()+timedelta(minutes=6), 2, 1, 5, 1, 'start'))
-        log_list.append(LogItem(datetime.now()+timedelta(minutes=9), 1, 1, 5, 1, 'end'))
-        log_list.append(LogItem(datetime.now()+timedelta(minutes=12), 2, 1, 5, 1, 'end'))
+        log_list = [
+            LogItem(datetime.now(), 1, 1, 5, 1, 'start'),
+            LogItem(datetime.now() + timedelta(minutes=3), 1, 2, 3, 1, 'start'),
+            LogItem(datetime.now() + timedelta(minutes=6), 2, 1, 5, 1, 'start'),
+            LogItem(datetime.now() + timedelta(minutes=9), 1, 1, 5, 1, 'end'),
+            LogItem(datetime.now() + timedelta(minutes=12), 2, 1, 5, 1, 'end')
+        ]
 
         LogWriter.write(log_list, name='banana')
 
+        print("\nTesting queue:")
         self._initialize_queue()
+
         while not self.queue.is_empty():
             item = self.queue.pop()
             print(str(item[0]), item[1], item[2])
@@ -62,23 +66,26 @@ class SimulationManager:
         # TODO: improve variable names in this function
         self.queue = ExecutionQueue()
         for model in self.models:
-            zero_hour = self.start.replace(microsecond=0, second=0, minute=0)
-            first_hour = zero_hour+timedelta(hours=1)
-            first_time = first_hour - self.start
-            self._initialize_hour(model, zero_hour, first_time)
-            while zero_hour + timedelta(hours=1) < self.end.replace(microsecond=0, second=0, minute=0):
-                zero_hour += timedelta(hours=1)
-                self._initialize_hour(model, zero_hour)
-            last_hour = zero_hour + timedelta(hours=1)
-            last_time = self.end - last_hour
-            self._initialize_hour(model, last_hour, last_time)
+            first_hour = self.start.replace(microsecond=0, second=0, minute=0)
+            second_hour = first_hour+timedelta(hours=1)
+            remaining_minutes = second_hour - self.start
+            self._initialize_hour(model, first_hour, remaining_minutes)
+            hour = first_hour
+            while hour + timedelta(hours=1) < self.end.replace(microsecond=0, second=0, minute=0):
+                hour += timedelta(hours=1)
+                self._initialize_hour(model, hour)
+            last_hour = hour + timedelta(hours=1)
+            remaining_minutes = self.end - last_hour
+            self._initialize_hour(model, last_hour, remaining_minutes)
 
     def _initialize_hour(self, model, time, minutes=None):
         arrival_rate = model.get_arrival_rate(DAYS[time.weekday()], time.hour)
         arrivals = [timedelta(minutes=randint(0, 59)) for i in range(arrival_rate)]
         for item in arrivals:
             if minutes is None or item <= minutes:
-                self.queue.push((time + item, 'Normal', model.get_first_activity()[0]))
+                self.running_processes.append(model.new())
+                act = model.get_first_activity()[0]
+                self.queue.push((time + item, act.priority, act))
 
 
 
@@ -105,7 +112,7 @@ class ExecutionQueue:
         return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
-sim = SimulationManager(start=datetime.now()+timedelta(days=2), end=datetime.now() + timedelta(days=4))
+sim = SimulationManager(start=datetime.now()+timedelta(days=2), end=datetime.now() + timedelta(days=3))
 sim.main()
 
 
