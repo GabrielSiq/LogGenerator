@@ -1,0 +1,232 @@
+<Models>
+	<Model id='plus'>
+		<Name>Listing Application</Name>
+		<!-- per minute, per hour, per second? -->
+		<ArrivalRate>
+			<Mon>
+				<TimeBlock start="9" end="17">15</TimeBlock>
+			</Mon>
+			<Tue>
+				<TimeBlock start="9" end="17">15</TimeBlock>
+			</Tue>
+			<Wed>
+				<TimeBlock start="9" end="17">15</TimeBlock>
+			</Wed>
+			<Thu>
+				<TimeBlock start="9" end="17">15</TimeBlock>
+			</Thu>
+			<Fri>
+				<TimeBlock start="9" end="17">15</TimeBlock>
+			</Fri>
+		</ArrivalRate>
+		<Deadline>2592000</Deadline>
+		<!-- How do we indicate which activities, upon failure, will cause the instance to fail? -->
+		<Activities>
+			<Activity id="application">
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<!-- Also need to specify the procedures for data generation! -->
+							<Field name="ApplicationInfo"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="verify">
+				<DataInput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="ApplicationInfo"></Field>
+						</Fields>
+					</DataObject>
+				</DataInput>
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="HostChecklist"></Field>
+							<Field name="QualityChecklist"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="inspection">
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="InspectionReport"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="quality">
+				<DataInput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="ApplicationInfo"></Field>
+							<Field name="HostChecklist"></Field>
+							<Field name="QualityChecklist"></Field>
+							<Field name="InspectionReport"></Field>
+						</Fields>
+					</DataObject>
+				</DataInput>
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="FixReport"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="fixQuality">
+				<DataInput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="FixReport"></Field>
+						</Fields>
+					</DataObject>
+				</DataInput>
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="FixReport"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="photo">
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="PropertyPhotos"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+			<Activity id="review">
+				<DataInput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="PropertyPhotos"></Field>
+						</Fields>
+					</DataObject>
+				</DataInput>
+				<DataOutput>
+					<DataObject id="app" type="form">
+						<Fields>
+							<Field name="PhotoApproval"></Field>
+						</Fields>
+					</DataObject>
+				</DataOutput>
+			</Activity>
+		</Activities>
+		<Gateways>
+			<Gateway id="checklistCompleted">
+				<Name>Checklist Completed?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.6</Gate>
+					<Gate id='no'>0.4</Gate>
+				</Distribution>
+				<!-- Pending, coming up with format for rules-->
+				<Rule></Rule>
+			</Gateway>
+			<Gateway id="qualityPassed">
+				<Name>Quality Passed?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.8</Gate>
+					<Gate id='no'>0.2</Gate>
+				</Distribution>
+				<!-- Pending, coming up with format for rules-->
+				<Rule></Rule>
+			</Gateway>
+			<Gateway id="photosApproved">
+				<Name>Photos Approved?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.9</Gate>
+					<Gate id='no'>0.1</Gate>
+				</Distribution>
+				<!-- Pending, coming up with format for rules-->
+				<Rule></Rule>
+			</Gateway>
+		</Gateways>
+		<Transitions>
+			<Transition source="START" destination="application">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="application" destination="verify">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="verify" destination="checklistCompleted">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="checklistCompleted" gate="no" destination="improvement">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="improvement" destination="verify">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="checklistCompleted" gate="yes" destination="inspection">
+				<Duration>
+					<Distribution type="Normal" mean="432000" variance="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="inspection" destination="quality">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="quality" destination="qualityPassed">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="qualityPassed" gate="no" destination="fixQuality">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="fixQuality" destination="quality">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="qualityPassed" gate="yes" destination="photo">
+				<Duration>
+					<Distribution type="Normal" mean="432000" variance="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="photo" destination="review">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="review" destination="photosApproved">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="photosApproved" gate="no" destination="photo">
+				<Duration>
+					<Distribution type="Normal" mean="432000" variance="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="photosApproved" gate="yes" destination="END">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+		</Transitions>
+	</Model>
+</Models>

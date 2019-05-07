@@ -1,0 +1,77 @@
+<Resources>
+	<Resource type='human' id='inspector'>
+		<Organization>Inspect, Inc.</Organization>
+		<Department>Inspectors</Department>
+		<Role>Home Inspector</Role>
+		<Quantity>15</Quantity>
+		<Availability>
+			<Sun>
+				<TimeBlock start="7" end="12"/>
+				<TimeBlock start="15" end="21"/>
+			</Sun>
+			<Wed>
+				<TimeBlock start="9" end="17"/>
+			</Wed>
+			<Thu>
+				<TimeBlock start="9" end="17"/>
+			</Thu>
+			<Fri>
+				<TimeBlock start="9" end="17"/>
+			</Fri>
+			<Sat>
+				<TimeBlock start="7" end="12"/>
+				<TimeBlock start="15" end="21"/>
+			</Sat>
+		</Availability>
+	</Resource>
+	<Resource type='human' id='quality'>
+		<Organization>Airbnb, Inc.</Organization>
+		<Department>Quality Control</Department>
+		<Role>Quality Check</Role>
+		<Quantity>5</Quantity>
+		<Availability>
+			<Mon>
+				<TimeBlock start="9" end="17"/>
+			</Mon>
+			<Tue>
+				<TimeBlock start="9" end="17"/>
+			</Tue>
+			<Wed>
+				<TimeBlock start="9" end="17"/>
+			</Wed>
+			<Thu>
+				<TimeBlock start="9" end="17"/>
+			</Thu>
+			<Fri>
+				<TimeBlock start="9" end="17"/>
+			</Fri>
+		</Availability>
+	</Resource>
+	<Resource type='human' id='ds'>
+		<Organization>Airbnb, Inc.</Organization>
+		<Department>Plus</Department>
+		<Role>Data Scientist</Role>
+		<Quantity>2</Quantity>
+		<Availability>
+			<Mon>
+				<TimeBlock start="9" end="17"/>
+			</Mon>
+			<Tue>
+				<TimeBlock start="9" end="17"/>
+			</Tue>
+			<Wed>
+				<TimeBlock start="9" end="17"/>
+			</Wed>
+			<Thu>
+				<TimeBlock start="9" end="17"/>
+			</Thu>
+			<Fri>
+				<TimeBlock start="9" end="17"/>
+			</Fri>
+		</Availability>
+	</Resource>
+	<Resource type='physical' id='pp' consumable="false">
+		<Type>Paper</Type>
+		<Quantity>100</Quantity>
+	</Resource>
+</Resources>

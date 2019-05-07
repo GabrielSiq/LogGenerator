@@ -1,0 +1,109 @@
+<Activities>
+	<Activity id="application">
+		<Name>Start Application</Name>
+		<Duration>
+			<Distribution type="Normal" mean="600" variance="120" />
+		</Duration>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Timeout>432000</Timeout>
+	</Activity>
+	<Activity id="verify">
+		<Name>Verify Checklist</Name>
+		<Duration>
+			<Distribution type="Normal" mean="600" variance="360" />
+		</Duration>
+		<DataInput>
+			<DataObject id="app"/>
+		</DataInput>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Timeout>432000</Timeout>
+	</Activity>
+	<Activity id="improvement">
+		<Name>Home Improvement</Name>
+		<Duration>
+			<Distribution type="Normal" mean="432000" variance="86400" />
+		</Duration>
+		<Timeout>8642000</Timeout>
+	</Activity>
+	<Activity id="inspection">
+		<Name>Execute Inspection</Name>
+		<Duration>
+			<Distribution type="Normal" mean="7200" variance="3600" />
+		</Duration>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Resources>
+			<Resource class_type="human" org="Inspect, Inc." dept="Inspectors" role="Home Inspector">1</Resource>
+		</Resources>
+		<FailureRate retries="3">0.05</FailureRate>
+		<Timeout>432000</Timeout>
+		<Priority>Normal</Priority>
+	</Activity>
+	<Activity id="quality">
+		<Name>Check Quality</Name>
+		<Duration>
+			<Distribution type="Normal" mean="3600" variance="120" />
+		</Duration>
+		<DataInput>
+			<DataObject id="app"/>
+		</DataInput>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Resources>
+			<Resource class_type="human" org="Airbnb, Inc." dept="Quality Control" role="Quality Check">1</Resource>
+		</Resources>
+		<Timeout>432000</Timeout>
+		<Priority>Normal</Priority>
+	</Activity>
+	<Activity id="fixQuality">
+		<Name>Fix Quality Issues</Name>
+		<Duration>
+			<Distribution type="Normal" mean="432000" variance="86400" />
+		</Duration>
+		<DataInput>
+			<DataObject id="app"/>
+		</DataInput>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Timeout>8642000</Timeout>
+	</Activity>
+	<Activity id="photo">
+		<Name>Execute Photography</Name>
+		<Duration>
+			<Distribution type="Normal" mean="7200" variance="3600" />
+		</Duration>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Resources>
+			<Resource class_type="human" org="Inspect, Inc." dept="Inspectors" role="Home Inspector">1</Resource>
+		</Resources>
+		<FailureRate retries="3">0.05</FailureRate>
+		<Timeout>432000</Timeout>
+		<Priority>High</Priority>
+	</Activity>
+	<Activity id="review">
+		<Name>Review Photos</Name>
+		<Duration>
+			<Distribution type="Normal" mean="3600" variance="1200" />
+		</Duration>
+		<DataInput>
+			<DataObject id="app"/>
+		</DataInput>
+		<DataOutput>
+			<DataObject id="app"/>
+		</DataOutput>
+		<Resources>
+			<Resource class_type="human" org="Airbnb, Inc." dept="Quality Control" role="Quality Check">1</Resource>
+		</Resources>
+		<Timeout>432000</Timeout>
+		<Priority>Normal</Priority>
+	</Activity>
+</Activities>
