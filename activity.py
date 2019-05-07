@@ -1,4 +1,4 @@
-from config import PRIORITY_TYPES
+from config import PRIORITY_VALUES
 from data_object import DataRequirement
 from duration import Duration
 from failure import Failure
@@ -7,9 +7,9 @@ from resource import ResourceRequirement
 
 class Activity:
     # Activities contained in process models
-    # TODO: add instance ids to all classes (or maybe only when they're on the queue running, maybe thats better)
+
     # Initialization and instance variables
-    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority=PRIORITY_TYPES['normal']):
+    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority=PRIORITY_VALUES['normal']):
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
@@ -18,11 +18,11 @@ class Activity:
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
-        self.timeout = timeout
+        self.timeout = int(timeout)
         if priority is None:
-            self.priority = PRIORITY_TYPES['normal']
-        elif priority.lower() in PRIORITY_TYPES.values():
-            self.priority = priority.lower()
+            self.priority = PRIORITY_VALUES['normal']
+        elif priority.lower() in PRIORITY_VALUES:
+            self.priority = PRIORITY_VALUES[priority.lower()]
         else:
             raise TypeError('Value %s is not supported for priority.' % priority)
 
