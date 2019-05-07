@@ -27,7 +27,7 @@ class Gateway:
         if self.type == GATEWAY_TYPES['parallel']:
             return self.gates
         else:
-            return self.decider.get_gate()
+            return [self.decider.get_gate()]
 
     # Private methods
     def __repr__(self):

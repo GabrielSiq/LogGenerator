@@ -16,7 +16,7 @@ class ResourceManager:
                 self.physical_resources.append(resource)
 
     # Public methods
-    def assign_resource(self, requirement, process_id, activity_id, start_time=None, duration=None):
+    def assign_resource(self, requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time=None, duration=None):
         """
         :param requirement: A ResourceRequirement object
         :param process_id: The id of the process we're assigning the resource to.
@@ -28,7 +28,7 @@ class ResourceManager:
         if duration is None:
             return self._assign_physical(requirement, start_time=start_time, duration=duration)
         else:
-            return self._assign_human(requirement, process_id, activity_id, start_time, duration)
+            return self._assign_human(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
 
     def check_availability(self, requirement, start_time, end_time):
         available = self.get_available(requirement, start_time, end_time)
@@ -43,14 +43,14 @@ class ResourceManager:
         return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
 
     # Private methods
-    def _assign_human(self, requirement, process_id, activity_id, start_time, duration):
+    def _assign_human(self, requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration):
         # Assigns any necessary number of human resources to a process based on the given requirement.
         # TODO: only handling one person working until the end. need to handle resource changes. Or maybe we can leave that to the simulation manager...
         result = {}
         if self.check_availability(requirement, start_time, end_time=start_time + timedelta(seconds=duration)) is True:
             available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
             for i in range(requirement.quantity):
-                result.update(self._assign_individual_human(available[i].id, start_time, duration, process_id, activity_id))
+                result.update(self._assign_individual_human(available[i].id, start_time, duration, process_id, process_instance_id, activity_id, activity_instance_id))
         return result
 
     def _assign_physical(self, requirement, start_time=None, duration=None):
@@ -69,8 +69,8 @@ class ResourceManager:
         self.physical_resources[resource_id].use(quantity, start_time=start_time, end_time=end_time)
         return {resource_id: quantity}
 
-    def _assign_individual_human(self, resource_id, start_time, duration, process_id, activity_id):
-        self.human_resources[resource_id].use(start_time=start_time, duration=duration, process_id=process_id, activity_id=activity_id)
+    def _assign_individual_human(self, resource_id, start_time, duration, process_id, process_instance_id, activity_id, activity_instance_id):
+        self.human_resources[resource_id].use(start_time=start_time, duration=duration, process_id=process_id, process_instance_id=process_instance_id, activity_id=activity_id, activity_instance_id=activity_instance_id)
         return {resource_id: 1}
 
     def _search(self, type, org=None, dept=None, role=None, physical_type=None, available=None, start_time=None, end_time=None, amount=0):
@@ -158,15 +158,19 @@ class HumanResource(Resource):
         self.availability = Availability(availability)
         self.busy_until = datetime(1, 1, 1, 0, 0)
         self.current_process_id = None
+        self.current_process_instance_id = None
         self.current_activity_id = None
+        self.current_activity_instance_id = None
 
     # Public methods
-    def use(self, start_time, duration, process_id, activity_id):
+    def use(self, start_time, duration, process_id, process_instance_id, activity_id, activity_instance_id):
         end_time = start_time + timedelta(seconds=duration)
         if self.busy_until <= start_time and self.availability.is_available(start_time) and self.availability.available_until(start_time, end_time) >= end_time:
             self.busy_until = end_time
             self.current_process_id = process_id
+            self.current_process_instance_id = process_instance_id
             self.current_activity_id = activity_id
+            self.current_activity_instance_id = activity_instance_id
         else:
             raise RuntimeError("Resource %s is busy and cannot be used." % self.id)
 

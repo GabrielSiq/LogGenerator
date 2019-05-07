@@ -210,11 +210,10 @@ class ModelBuilder:
                 if destination is not None:
                     activities[destination.id] = destination
                     # resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
-        print('new test', activities)
         for act in model_child.find('Activities'):
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)
-        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions) # , data_objects=list(data_objects.values()), resources=list(resources.values())
+        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions)  # , data_objects=list(data_objects.values()), resources=list(resources.values())
 
     @staticmethod
     def _parse_from_existing(item, resources, data_objects):

@@ -5,7 +5,7 @@ class Duration:
     # Initialization and instance variables
     def __init__(self, distribution):
         if type(distribution) is dict:
-            self.type = distribution['type']
+            self.type = distribution['type'].lower()
             distribution.pop('type')
             self.parameters = distribution
         else:
@@ -15,15 +15,15 @@ class Duration:
     # Public methods
     def generate(self):
         if self.type == 'normal':
-            return random.normal(loc=self.parameters['mean'], scale=self.parameters['variance'])
+            return int(random.normal(loc=int(self.parameters['mean']), scale=int(self.parameters['variance'])))
         elif self.type == 'uniform':
-            return random.uniform(low=self.parameters['low'], high=self.parameters['high'])
+            return int(random.uniform(low=int(self.parameters['low']), high=int(self.parameters['high'])))
         elif self.type == 'triangular':
-            return random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right'])
+            return int(random.triangular(left=int(self.parameters['left']), mode=int(self.parameters['mode']), right=int(self.parameters['right'])))
         elif self.type == 'beta':
-            return random.beta(a=self.parameters['a'], b=self.parameters['b'])
+            return int(random.beta(a=int(self.parameters['a']), b=int(self.parameters['b'])))
         elif self.type == 'const':
-            return self.parameters['value']
+            return int(self.parameters['value'])
         else:
             return None
 

@@ -9,6 +9,15 @@ class ProcessInstance:
         self.process_id = pid
         self.process_instance_id = piid
         self.process_reference = process_reference
+        self.last_activities = dict()
+        for activity in self.process_reference.activities:
+            self.last_activities[activity] = 0
+        for gateway in self.process_reference.gateways:
+            self.last_activities[gateway] = 0
+
+    def get_element_instance_id(self, id):
+        self.last_activities[id] += 1
+        return self.last_activities[id] - 1
 
     # Private methods
     def __repr__(self):
@@ -29,6 +38,8 @@ class Process:
         self.gateways = dict()
         for gate in gateways:
             self.gateways[gate.id] = gate
+        print(self.activities)
+        print('gateways', self.gateways)
         self.transitions = transitions
         # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         # self.resources = resources
@@ -53,10 +64,18 @@ class Process:
     def get_next(self, source, gate=None):
         # returns next activity or gateway id and the delay of the transition
         # For list structure
+        print(source, gate)
         for transition in self.transitions:
             if transition.source == source and (gate is None or transition.gate == gate):
                 (act, delay) = transition.get_next()
-                return self.activities[act], delay
+                print(source, act)
+                try:
+                    element = self.activities[act]
+                except KeyError:
+                    element = self.gateways[act]
+                print('a', element)
+                return element, delay
+
         # For dict structure
         # if gate is None:
         #     return self.transitions[source].get_next()

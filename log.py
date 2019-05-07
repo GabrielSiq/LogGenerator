@@ -5,11 +5,9 @@ from config import DEFAULT_PATHS, SUPPORTED_FORMATS
 
 
 class LogItem:
-    log_id = 0
+
     def __init__(self, date, process_id, process_instance_id, activity_id, activity_instance_id, status):
-        self.log_id = LogItem.log_id
-        LogItem.log_id += 1 # warning: NOT thread safe
-        self.timestamp = date.timestamp()
+        self.timestamp = date.strftime("%Y%m%d-%H%M%S")  # date.timestamp()
         self.process_id = process_id
         self.process_instance_id = process_instance_id
         self.activity_id = activity_id
@@ -21,7 +19,7 @@ class LogItem:
 
     # Private methods
     def __lt__(self, other):
-        return self.timestamp < other.timestamp
+        return self.timestamp < other.timestamp or (self.timestamp == other.timestamp and self.process_id < self.process_id)
 
 
 class LogWriter:
@@ -38,8 +36,12 @@ class LogWriter:
     def _write_json(log_list, location, name):
         file_to_open = LogWriter._unique_path(location, name, '.json')
         output = []
-        while log_list:
-            output.append(LogWriter._parse_event(log_list.pop(0)))
+        lid = 0
+        while not log_list.is_empty():
+            log = LogWriter._parse_event(log_list.pop())
+            log['log_id'] = lid
+            output.append(log)
+            lid += 1
         with file_to_open.open(mode='w') as f:
             json.dump(output, f, indent=4)
 
