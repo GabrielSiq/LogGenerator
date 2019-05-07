@@ -7,6 +7,7 @@ from config import DEFAULT_PATHS, SUPPORTED_FORMATS
 class LogItem:
 
     def __init__(self, date, process_id, process_instance_id, activity_id, activity_instance_id, status):
+        # TODO: DECIDE ON DATE FORMAT FOR LOG
         self.timestamp = date.strftime("%Y%m%d-%H%M%S")  # date.timestamp()
         self.process_id = process_id
         self.process_instance_id = process_instance_id

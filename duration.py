@@ -10,7 +10,7 @@ class Duration:
             self.parameters = distribution
         else:
             self.type = 'const'
-            self.parameters = {'value': distribution if distribution is not None else 0}
+            self.parameters = {'value': int(distribution) if distribution is not None else 0}
 
     # Public methods
     def generate(self):

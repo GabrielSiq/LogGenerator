@@ -67,8 +67,12 @@ class ModelBuilder:
         except AttributeError:
             pass
 
-        if activity_child.find('Duration/Distribution') is not None:
-            fields['distribution'] = self._parse_distribution(activity_child.find('Duration/Distribution'))
+        duration_child = activity_child.find('Duration/')
+        distribution_child = activity_child.find('Duration/Distribution')
+        if distribution_child is not None:
+            fields['distribution'] = self._parse_distribution(distribution_child)
+        elif duration_child is not None:
+            fields['distribution'] = duration_child.text
 
         data_input = []
         data_input_child = activity_child.find('DataInput')
@@ -156,7 +160,12 @@ class ModelBuilder:
             res = HumanResource(id, org, dept, role, availability)
         elif class_type == RESOURCE_TYPES['physical']:
             type = resource_child.find('Type').text
-            delay = self._parse_distribution(resource_child.find('Delay/Distribution'))
+            duration_child = resource_child.find('Duration')
+            distribution_child = resource_child.find('Duration/Distribution')
+            if distribution_child is not None:
+                delay = self._parse_distribution(distribution_child)
+            else:
+                delay = duration_child.text if duration_child is not None else 0
             cons = True if resource_child.get('consumable').lower() == "true" else False
             res = PhysicalResource(id, type, qty, delay, cons)
 
@@ -170,7 +179,6 @@ class ModelBuilder:
             return None
         try:
             return distribution_child.attrib
-            # TODO: Think of case when the duration is fixed and not a distribution.
         except AttributeError:
             print('Poorly formatted duration.')
 
@@ -255,11 +263,12 @@ class ModelBuilder:
         source = transition_child.get('source')
         destination = transition_child.get('destination')
         gate = transition_child.get('gate')
+        duration_child = transition_child.find('Duration')
         distribution_child = transition_child.find('Duration/Distribution')
         if distribution_child is not None:
             distribution = self._parse_distribution(distribution_child)
         else:
-            distribution = 0
+            distribution = duration_child.text if duration_child is not None else 0
 
         return Transition(source=source, destination=destination, gate=gate, distribution=distribution)
 
