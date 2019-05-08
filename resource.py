@@ -1,5 +1,7 @@
 from datetime import timedelta, datetime
 from heapq import heappush, heappop
+from typing import List, Union
+
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
 
@@ -7,15 +9,21 @@ from duration import Duration
 class ResourceManager:
     # Initialization and instance variables
     def __init__(self, resources):
-        self.human_resources = []
-        self.physical_resources = []
+        self.human_resources = dict()
+        self.physical_resources = dict()
         for resource in resources:
             if isinstance(resource, HumanResource):
-                self.human_resources.append(resource)
+                self.human_resources[resource.id] = resource
             elif isinstance(resource, PhysicalResource):
-                self.physical_resources.append(resource)
+                self.physical_resources[resource.id] = resource
 
     # Public methods
+
+    def assign_resources(self, requirement_list, process_id, process_instance_id, activity_id, activity_instance_id, start_time=None, duration=None):
+        # TODO: Implement the case when there are more than one requirement. Does it mean one or another or does it mean multiple? This is a modeling question that needs to be answered.
+        for requirement in requirement_list:
+            return self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
+
     def assign_resource(self, requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time=None, duration=None):
         """
         :param requirement: A ResourceRequirement object
@@ -25,6 +33,7 @@ class ResourceManager:
         :param duration: For how long is the resource going to be assigned. (human only)
         :return: IDs of the assigned resources
         """
+
         if duration is None:
             return self._assign_physical(requirement, start_time=start_time, duration=duration)
         else:
@@ -42,16 +51,24 @@ class ResourceManager:
     def get_available(self, requirement, start_time=None, end_time=None):
         return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
 
+    def when_available(self, requirement, start_time=None, end_time=None):
+        # TODO: What about physical resources? The same logic doesn't apply...
+        requirement = requirement[0]
+        # TODO: Handle more than one resource here as well...
+        resources = self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=False, start_time=start_time, end_time=end_time, amount=requirement.quantity)
+        return sorted(resources, key=lambda x: x.when_available(start_time))[0].when_available(start_time)
+
     # Private methods
     def _assign_human(self, requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration):
-        # Assigns any necessary number of human resources to a process based on the given requirement.
-        # TODO: only handling one person working until the end. need to handle resource changes. Or maybe we can leave that to the simulation manager...
+        # Assigns any necessary number of human resources to a process based on the given requirement. If resources are not available durint the full duration of the activity, assigns them anyway but returns the expiration date.
         result = {}
+        max_date = datetime.min
         if self.check_availability(requirement, start_time, end_time=start_time + timedelta(seconds=duration)) is True:
-            available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
+            available: List[HumanResource] = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
+            max_date = available[requirement.quantity - 1].available_until(start_time, start_time + timedelta(seconds=duration))
             for i in range(requirement.quantity):
-                result.update(self._assign_individual_human(available[i].id, start_time, duration, process_id, process_instance_id, activity_id, activity_instance_id))
-        return result
+                result.update(self._assign_individual_human(available[i].id, start_time, (max_date - start_time).total_seconds(), process_id, process_instance_id, activity_id, activity_instance_id))
+        return max_date, result
 
     def _assign_physical(self, requirement, start_time=None, duration=None):
         # Assigns any necessary number of physical resources to a process. Resources can be consumable or not.
@@ -83,17 +100,17 @@ class ResourceManager:
 
     def _search_physical(self, type, start_time, amount, available=None):
         result = []
-        for resource in self.physical_resources:
+        for id, resource in self.physical_resources.items():
             if resource.type == type and (available is None or (available is True and resource.check_free(start_time, amount) > 0) or (available is False and resource.check_free(start_time, amount) == 0)):
                 result.append(resource)
-        return sorted(result, key=lambda x: x.check_free(start_time, amount))
+        return sorted(result, key=lambda x: x.check_free(start_time, amount), reverse=True)
 
     def _search_human(self, org, dept, role, available=None, start_time=None, end_time=None):
         result = []
-        for resource in self.human_resources:
+        for id, resource in self.human_resources.items():
             if (role is None or resource.role == role) and (dept is None or resource.dept == dept) and org is not None and resource.org == org and (available is None or resource.is_available(start_time) == available):
                 result.append(resource)
-        return sorted(result, key=lambda x: x.available_until(start_time, end_time))
+        return sorted(result, key=lambda x: x.available_until(start_time, end_time), reverse=True)
 
 
 class ResourceRequirement:
@@ -181,7 +198,17 @@ class HumanResource(Resource):
         if self.is_available(start):
             return self.availability.available_until(start, end)
         else:
-            return None
+            return datetime.min
+
+    def when_available(self, start):
+        if self.busy_until > start:
+            start = self.busy_until
+            if self.is_available(start):
+                return start
+        current = start.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        while not self.is_available(current):
+            current += timedelta(hours=1)
+        return current
 
 
 class PhysicalResource(Resource):
@@ -263,12 +290,17 @@ class Availability:
             return False
 
     def available_until(self, start, end):
-
+        if not self.is_available(start):
+            return start
         current = start
         while self.is_available(current) and current < end:
             current += timedelta(hours=1)
+        current = current.replace(microsecond=0, second=59, minute=59)
         return min(current, end)
 
+    # Private methods
+    def __repr__(self):
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
 

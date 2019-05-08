@@ -1,5 +1,7 @@
 from heapq import heappush, heappop
 
+import math
+
 from activity import Activity
 from config import DAYS, PRIORITY_VALUES
 from gateway import Gateway
@@ -67,10 +69,11 @@ class SimulationManager:
 
         # return
 
-        current = self.execution_queue.pop()
-        while current.start <= self.end and not self.execution_queue.is_empty():
-            self._simulate(current)
+        while not self.execution_queue.is_empty():
             current = self.execution_queue.pop()
+            if current.start > self.end:
+                break
+            self._simulate(current)
 
         LogWriter.write(self.log_queue)
         while not self.execution_queue.is_empty():
@@ -86,21 +89,56 @@ class SimulationManager:
             return self._simulate_gateway(item)
 
     def _simulate_activity(self, item):
+        # TODO: Decide what does this return.
         activity = item.element
-        duration = min(activity.generate_duration(), activity.timeout)
+        duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
+        timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
+        max_duration = min(duration, timeout)
+        # TODO: What about physical resources? The same logic doesn't apply...
         if activity.resources is not None:
-            assigned = self.rm.assign_resource(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=duration)
-            if not assigned:
-                # check when resources will be available and set the date to it
-                pass
-        # add next to queue
-        # TODO: CHECK cases where timeout or no resources or retries
-        element, delay = item.running_process.process_reference.get_next(source=activity.id)
-        self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
-        self.log_queue.push(LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, 'start_activity'))
+            date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
+            if date < item.start + timedelta(seconds=max_duration):
+                if not assigned:
+                    # When there are no resources available. Register the occurence and try again when next resource is available.
+                    new_start = self.rm.when_available(activity.resources, item.start, item.start + timedelta(seconds=max_duration))
+                    self.log_queue.push(
+                        LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
+                                item.element_instance_id,
+                                'waiting_resource'))
+                    self.execution_queue.push(item.postpone(new_start))
+                    return
+                else:
+                    # resources were assigned but weren't enough to complete the activity. create a log and push back into queue with new duration when we finish this execution.
+                    self.log_queue.push(
+                        LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
+                                item.element_instance_id,
+                                'start_activity'))
+                    self.log_queue.push(
+                        LogItem(date, item.process_id, item.process_instance_id,
+                                item.element_id, item.element_instance_id,
+                                'pause_activity'))
+                    self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds()))
+                    return
+
+        # TODO: CHECK cases where no resources or retries/fails
+        # Completed activity
         self.log_queue.push(
-            LogItem(item.start + timedelta(seconds=duration), item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
-                    'end_activity'))
+            LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
+                    'start_activity'))
+        if duration > timeout:
+            self.log_queue.push(
+                LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                        item.element_id, item.element_instance_id,
+                        'timeout'))
+        else:
+            self.log_queue.push(
+                LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                        item.element_id, item.element_instance_id,
+                        'end_activity'))
+            # add next to queue
+            element, delay = item.running_process.process_reference.get_next(source=activity.id)
+            if element is not None:
+                self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
 
     def _simulate_gateway(self, item):
         # TODO: Missing merge logic.
@@ -110,11 +148,6 @@ class SimulationManager:
             element, delay = item.running_process.process_reference.get_next(source=gateway.id, gate=gate)
             self.execution_queue.push(item.successor(element, delay=delay))
         self.log_queue.push(LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, 'decision'))
-
-
-
-
-
 
     def _initialize_queue(self):
         self.execution_queue = PriorityQueue()
@@ -166,7 +199,7 @@ class PriorityQueue:
 
 
 class QueueItem:
-    def __init__(self, process, element_id, element_instance_id, start, element):
+    def __init__(self, process, element_id, element_instance_id, start, element, duration=None, timeout=None):
         self.process_id = process.process_id
         self.process_instance_id = process.process_instance_id
         self.element_id = element_id
@@ -175,9 +208,21 @@ class QueueItem:
         self.priority = element.priority if isinstance(element, Activity) else PRIORITY_VALUES['high']
         self.element = element
         self.running_process = process
+        self.leftover_duration = duration
+        self.leftover_timeout = timeout
 
     def successor(self, element, duration=0, delay=0):
         return QueueItem(self.running_process, element.id, self.running_process.get_element_instance_id(element.id), self.start + timedelta(seconds=duration + delay), element)
+
+    def leftover(self, original_duration, actual_duration):
+        leftover_duration = self.leftover_duration - actual_duration if self.leftover_duration is not None else original_duration - actual_duration
+        leftover_timeout = self.leftover_timeout - actual_duration if self.leftover_timeout is not None else self.element.timeout - actual_duration
+        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=actual_duration), self.element, duration=leftover_duration, timeout=leftover_timeout)
+
+    def postpone(self, new_start):
+        # TODO: Decide if timeout is activity running time or if it's deadline after it starts. It possibly makes more sense to be deadline after it starts, so this logic will have to change a bit. postponing will reduce from leftover timeout if the activity has already started. change resources as well. Maybe we could record the original start time.
+        return QueueItem(self.running_process, self.element_id, self.element_instance_id,
+                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout)
 
     def __lt__(self, other):
         if self.start < other.start:
@@ -194,7 +239,7 @@ class QueueItem:
         return ', '.join("%s: %s" % item for item in vars(self).items())
 
 
-sim = SimulationManager(start=datetime.now(), end=datetime.now() + timedelta(hours=1))
+sim = SimulationManager(start=datetime.now(), end=datetime.now() + timedelta(days=30))
 sim.main()
 
 
