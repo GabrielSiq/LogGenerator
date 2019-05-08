@@ -1,3 +1,6 @@
+from activity import Activity
+
+
 class ProcessManager:
     # Initialization and instance variables
     def __init__(self):
@@ -11,11 +14,13 @@ class ProcessInstance:
         self.process_reference = process_reference
         self.last_activities = dict()
         for activity in self.process_reference.activities:
-            self.last_activities[activity] = 0
+            self.last_activities[activity] = 1
         for gateway in self.process_reference.gateways:
-            self.last_activities[gateway] = 0
+            self.last_activities[gateway] = 1
 
     def get_element_instance_id(self, id):
+        if id == "END":
+            return 0
         self.last_activities[id] += 1
         return self.last_activities[id] - 1
 
@@ -38,8 +43,6 @@ class Process:
         self.gateways = dict()
         for gate in gateways:
             self.gateways[gate.id] = gate
-        print(self.activities)
-        print('gateways', self.gateways)
         self.transitions = transitions
         # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         # self.resources = resources
@@ -64,23 +67,18 @@ class Process:
     def get_next(self, source, gate=None):
         # returns next activity or gateway id and the delay of the transition
         # For list structure
-        print(source, gate)
         for transition in self.transitions:
             if transition.source == source and (gate is None or transition.gate == gate):
                 (act, delay) = transition.get_next()
-                print(source, act)
-                try:
-                    element = self.activities[act]
-                except KeyError:
-                    element = self.gateways[act]
-                print('a', element)
-                return element, delay
-
-        # For dict structure
-        # if gate is None:
-        #     return self.transitions[source].get_next()
-        # else:
-        #     return self.transitions[source][gate].get_next()
+                if act in self.activities:
+                    return self.activities[act], delay
+                elif act in self.gateways:
+                    return self.gateways[act], delay
+                elif act == "END":
+                    return Activity.end(), delay
+                else:
+                    raise ValueError(f"Activity or gateway {act} can't be found")
+        return None, None
 
     # Private methods
     def __repr__(self):

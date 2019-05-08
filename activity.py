@@ -1,3 +1,4 @@
+import math
 from config import PRIORITY_VALUES
 from data_object import DataRequirement
 from duration import Duration
@@ -9,7 +10,7 @@ class Activity:
     # Activities contained in process models
 
     # Initialization and instance variables
-    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority=PRIORITY_VALUES['normal']):
+    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
@@ -18,7 +19,7 @@ class Activity:
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
-        self.timeout = int(timeout)
+        self.timeout = int(timeout) if timeout is not None else math.inf
         if priority is None:
             self.priority = PRIORITY_VALUES['normal']
         elif priority.lower() in PRIORITY_VALUES:
@@ -37,6 +38,10 @@ class Activity:
     def update(self, fields):
         for key, value in fields.items():
             setattr(self, key, value)
+
+    @staticmethod
+    def end():
+        return Activity("END", "END")
 
     # Private methods
     def __repr__(self):
