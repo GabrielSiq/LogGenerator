@@ -4,7 +4,7 @@ from gateway import Gateway
 from process import Process
 from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_PATHS, FILE_ROOT, GATEWAY_TYPES
 from resource import HumanResource, PhysicalResource, ResourceManager
-from data_object import Form, DataManager
+from data import Form, DataManager
 from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
@@ -87,9 +87,9 @@ class ModelBuilder:
                 if data_object.get('type') == 'form':
                     fields_child = data_object.find('Fields')
                     if fields_child is not None:
-                        data['fields'] = dict()
+                        data['fields'] = list()
                         for field in fields_child:
-                            data['fields'][field.get('name')] = field.text
+                            data['fields'].append(field.get('name'))
                 data_input.append(data)
             fields['data_input'] = data_input
 
@@ -106,9 +106,9 @@ class ModelBuilder:
                 if data_object.get('type') == 'form':
                     fields_child = data_object.find('Fields')
                     if fields_child is not None:
-                        data['fields'] = dict()
+                        data['fields'] = list()
                         for field in fields_child:
-                            data['fields'][field.get('name')] = field.text
+                            data['fields'].append(field.get('name'))
                 data_output.append(data)
             fields['data_output'] = data_output
 
@@ -202,7 +202,7 @@ class ModelBuilder:
             gateways.append(self._parse_gateway(gateway))
         transitions = []
         activities = dict()
-        # resources = dict()
+        resources = list()  # currently unused
         data_objects = dict()
         for transition in model_child.find('Transitions'):
             transition_object = self._parse_transition(transition)
@@ -212,16 +212,16 @@ class ModelBuilder:
                 source = self._clone_activity(transition_object.source)
                 if source is not None:
                     activities[source.id] = source
-                    # resources, data_objects = self._parse_from_existing(source, resources, data_objects)
+                    resources, data_objects = self._parse_from_existing(source, resources, data_objects)
             if transition_object.destination not in activities:
                 destination = self._clone_activity(transition_object.destination)
                 if destination is not None:
                     activities[destination.id] = destination
-                    # resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
+                    resources, data_objects = self._parse_from_existing(destination, resources, data_objects)
         for act in model_child.find('Activities'):
             fields = self._parse_activity_fields(act)
             activities[fields['id']].update(fields)
-        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions)  # , data_objects=list(data_objects.values()), resources=list(resources.values())
+        return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions, data_objects=list(data_objects.values()))
 
     @staticmethod
     def _parse_from_existing(item, resources, data_objects):
@@ -241,7 +241,6 @@ class ModelBuilder:
         gates = []
         distribution = None
         rule = None
-        # TODO: Deal with parallel and merge.
         if type == GATEWAY_TYPES['choice']:
             distribution_child = gateway_child.find('Distribution')
             rule_child = gateway_child.find('Rule')
@@ -251,12 +250,15 @@ class ModelBuilder:
                     gates.append(gate.get('id'))
                     distribution.append(gate.text)
             elif rule_child is not None and len(list(rule_child)):
-                # TODO: Parse rule based gateway
-                # TODO: Don't forget to extract gates from here.
-                gates = []
-                rule = None
+                for gate in rule_child:
+                    gates.append(gate.get('id'))
+                rule = id
             else:
                 raise ValueError("For choice gateways, either rule or distribution must be present.")
+        elif type == GATEWAY_TYPES['parallel'] or type == GATEWAY_TYPES['merge']:
+            gates_child = gateway_child.find('Gates')
+            for gate in gates_child:
+                gates.append(gate.get('id'))
         return Gateway(id=id, name=name, type=type, gates=gates, distribution=distribution, rule=rule)
 
     def _parse_transition(self, transition_child):

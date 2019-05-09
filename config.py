@@ -28,8 +28,11 @@ PRIORITY_VALUES = {
 GATEWAY_TYPES = {
     'merge': 'merge',
     'choice': 'choice',
-    'parallel': 'parallel'
+    'parallel': 'parallel',
+    'rule': 'rule'
 }
+
+MERGE_OUTPUT = 'out'
 
 DATA_TYPES = {
     'form': 'form'
@@ -40,7 +43,8 @@ DEFAULT_PATHS = {
     'data':  'input/data.xml',
     'models': 'input/models.xml',
     'resources': 'input/resources.xml',
-    'log': 'output/'
+    'log': 'output/',
+    'rules': 'input.rules'
 }
 
 FILE_ROOT = {

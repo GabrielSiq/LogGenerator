@@ -1,6 +1,6 @@
 import math
 from config import PRIORITY_VALUES
-from data_object import DataRequirement
+from data import DataRequirement
 from duration import Duration
 from failure import Failure
 from resource import ResourceRequirement
@@ -36,8 +36,12 @@ class Activity:
         return self.failure.check_failure()
 
     def update(self, fields):
+        # TODO: improve this function to generate some of the necessary classes (e.g. Duration)
         for key, value in fields.items():
-            setattr(self, key, value)
+            if key == 'data_input' or key == 'data_output':
+                setattr(self, key, DataRequirement.from_list(value))
+            else:
+                setattr(self, key, value)
 
     @staticmethod
     def end():

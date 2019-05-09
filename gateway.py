@@ -1,5 +1,8 @@
+import importlib.util
 from numpy import random
-from config import GATEWAY_TYPES
+from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS
+
+RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules'])
 
 
 class Gateway:
@@ -8,26 +11,37 @@ class Gateway:
         self.id = id
         self.name = name
         self.type = type
-        self.merge_inputs = []
         if self.type == GATEWAY_TYPES['choice']:
             if rule is not None:
+                self.type = GATEWAY_TYPES['rule']
                 self.decider = GateRule(gates, rule)
             elif distribution is not None:
                 self.decider = GateDistribution(gates, distribution)
             else:
                 raise ValueError("For choice gateways, either rule or distribution must be present.")
+            self.gates = gates
         elif self.type == GATEWAY_TYPES['parallel']:
             self.decider = None
+            self.gates = gates
+        elif self.type == GATEWAY_TYPES['merge']:
+            self.merge_inputs = gates
+            self.gates = MERGE_OUTPUT
         else:
             raise ValueError("Value %s is not a valid gateway type." % self.type)
-        self.gates = gates
 
     # Public methods
-    def get_gate(self):
-        if self.type == GATEWAY_TYPES['parallel']:
+    def get_gate(self, input_data=None):
+        if self.type == GATEWAY_TYPES['parallel'] or self.type == GATEWAY_TYPES['merge']:
             return self.gates
-        else:
+        elif self.type == GATEWAY_TYPES['choice']:
             return [self.decider.get_gate()]
+        else:
+            # Rule
+            return [self.decider.get_gate(input_data)]
+
+    def get_inputs(self):
+        if self.type == GATEWAY_TYPES['merge']:
+            return self.merge_inputs
 
     # Private methods
     def __repr__(self):
@@ -35,11 +49,21 @@ class Gateway:
 
 
 class GateRule:
-    # TODO: Implement gate rule.
     # Initialization and instance variables
     def __init__(self, gates, rule):
-        a = rule
+        self.gates = gates
+        self.decision = getattr(RULE_MODULE, rule)
         pass
+
+    def get_gate(self, input_data=None):
+        if input_data is not None:
+            gate = self.decision(input_data)
+        else:
+            gate = self.decision()
+        if gate in self.gates:
+            return gate
+        else:
+            raise RuntimeError("Gate provided by input rule function doesn't exist.")
 
     # Private methods
     def __repr__(self):

@@ -1,7 +1,5 @@
 from heapq import heappush, heappop
-
 import math
-
 from activity import Activity
 from config import DAYS, PRIORITY_VALUES
 from gateway import Gateway
@@ -68,6 +66,15 @@ class SimulationManager:
         #     print(item.start)
 
         # return
+
+        act = self.models[0].activities['verify']
+        para = self.models[0].gateways['parallelTest']
+        merge = self.models[0].gateways['mergeTest']
+        rule = self.models[0].gateways['checklistCompleted']
+        choice = self.models[0].gateways['qualityPassed']
+
+        # for i in range(10):
+        #     print(para.get_gate(), merge.get_gate(),rule.get_gate(),choice.get_gate())
 
         while not self.execution_queue.is_empty():
             current = self.execution_queue.pop()
@@ -141,7 +148,9 @@ class SimulationManager:
                 self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
 
     def _simulate_gateway(self, item):
-        # TODO: Missing merge logic.
+        # TODO: Missing merge and rule logic.
+
+        #TODO: For rule: send together a dict with all data objects tied to that process execution. Then, the decision code should figure it out. Come back and test it.
         gateway = item.element
         gates = gateway.get_gate()
         for gate in gates:
@@ -172,7 +181,7 @@ class SimulationManager:
                 instance = model.new()
                 self.running_processes.append(instance)
                 act = instance.process_reference.get_first_activity()[0]
-                self.execution_queue.push(QueueItem(instance, act.id, 0, time + item, act))
+                self.execution_queue.push(QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))
 
 
 class PriorityQueue:

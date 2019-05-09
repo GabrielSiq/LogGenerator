@@ -1,4 +1,5 @@
 from activity import Activity
+from data import DataRequirement
 
 
 class ProcessManager:
@@ -34,7 +35,7 @@ class Process:
     instance = 0
 
     # Initialization and instance variables
-    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions):
+    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions, data_objects):
         self.id = id
         self.name = name
         self.arrival_rate = arrival_rate
@@ -44,8 +45,7 @@ class Process:
         for gate in gateways:
             self.gateways[gate.id] = gate
         self.transitions = transitions
-        # self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
-        # self.resources = resources
+        self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
 
     # Public methods
 
@@ -61,6 +61,7 @@ class Process:
         return self.get_next('START')
 
     def new(self):
+        # TODO: Somehow initialize data objects. maybe the sim manager can call creation in the data manager.
         Process.instance += 1
         return ProcessInstance(self.id, self.instance, self)
 

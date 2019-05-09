@@ -1,22 +1,22 @@
 <Models>
 	<Model id='plus'>
 		<Name>Listing Application</Name>
-		<!-- per minute, per hour, per second? -->
+		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
-				<TimeBlock start="9" end="17">15</TimeBlock>
+				<TimeBlock start="9" end="17">0</TimeBlock>
 			</Mon>
 			<Tue>
-				<TimeBlock start="9" end="17">15</TimeBlock>
+				<TimeBlock start="9" end="17">0</TimeBlock>
 			</Tue>
 			<Wed>
-				<TimeBlock start="9" end="17">15</TimeBlock>
+				<TimeBlock start="9" end="17">1</TimeBlock>
 			</Wed>
 			<Thu>
-				<TimeBlock start="9" end="17">15</TimeBlock>
+				<TimeBlock start="9" end="17">0</TimeBlock>
 			</Thu>
 			<Fri>
-				<TimeBlock start="9" end="17">15</TimeBlock>
+				<TimeBlock start="9" end="17">0</TimeBlock>
 			</Fri>
 		</ArrivalRate>
 		<Deadline>2592000</Deadline>
@@ -27,7 +27,7 @@
 					<DataObject id="app" type="form">
 						<Fields>
 							<!-- Also need to specify the procedures for data generation! -->
-							<Field name="ApplicationInfo"></Field>
+							<Field name="ApplicationInfo"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -36,15 +36,15 @@
 				<DataInput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="ApplicationInfo"></Field>
+							<Field name="ApplicationInfo"/>
 						</Fields>
 					</DataObject>
 				</DataInput>
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="HostChecklist"></Field>
-							<Field name="QualityChecklist"></Field>
+							<Field name="HostChecklist"/>
+							<Field name="QualityChecklist"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -53,7 +53,7 @@
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="InspectionReport"></Field>
+							<Field name="InspectionReport"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -62,17 +62,17 @@
 				<DataInput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="ApplicationInfo"></Field>
-							<Field name="HostChecklist"></Field>
-							<Field name="QualityChecklist"></Field>
-							<Field name="InspectionReport"></Field>
+							<Field name="ApplicationInfo"/>
+							<Field name="HostChecklist"/>
+							<Field name="QualityChecklist"/>
+							<Field name="InspectionReport"/>
 						</Fields>
 					</DataObject>
 				</DataInput>
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="FixReport"></Field>
+							<Field name="FixReport"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -81,14 +81,14 @@
 				<DataInput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="FixReport"></Field>
+							<Field name="FixReport"/>
 						</Fields>
 					</DataObject>
 				</DataInput>
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="FixReport"></Field>
+							<Field name="FixReport"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -97,7 +97,7 @@
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="PropertyPhotos"></Field>
+							<Field name="PropertyPhotos"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -106,14 +106,14 @@
 				<DataInput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="PropertyPhotos"></Field>
+							<Field name="PropertyPhotos"/>
 						</Fields>
 					</DataObject>
 				</DataInput>
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="PhotoApproval"></Field>
+							<Field name="PhotoApproval"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -123,12 +123,27 @@
 			<Gateway id="checklistCompleted">
 				<Name>Checklist Completed?</Name>
 				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.6</Gate>
-					<Gate id='no'>0.4</Gate>
-				</Distribution>
-				<!-- Pending, coming up with format for rules-->
-				<Rule></Rule>
+				<Rule>
+					<Gate id="yes"/>
+					<Gate id="no"/>
+				</Rule>
+			</Gateway>
+			<Gateway id="parallelTest">
+				<Name>Parallel Test</Name>
+				<Type>Parallel</Type>
+				<Gates>
+					<Gate id="a"/>
+					<Gate id="b"/>
+				</Gates>
+			</Gateway>
+			<Gateway id="mergeTest">
+				<Name>Merge Test</Name>
+				<Type>Merge</Type>
+				<Gates>
+					<Gate id="a"/>
+					<Gate id="b"/>
+					<Gate id="c"/>
+				</Gates>
 			</Gateway>
 			<Gateway id="qualityPassed">
 				<Name>Quality Passed?</Name>

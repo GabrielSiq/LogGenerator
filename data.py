@@ -11,6 +11,9 @@ class DataManager:
         for data in data_list:
             self.data_store[data.id] = data
 
+    #TODO: OBJECTS should be stored by process instance id.
+    #TODO: When initializing a process, we should also instantiate a copy of the data items it uses.
+
     # Public methods
     def read_object(self, object_id, fields=None):
         if fields is not None:
@@ -43,8 +46,9 @@ class DataManager:
 
 class DataRequirement:
     # Initialization and instance variables
-    def __init__(self, id):
+    def __init__(self, id, fields):
         self.id = id
+        self.fields = fields
 
     # Public methods
     @classmethod
@@ -53,7 +57,7 @@ class DataRequirement:
             return None
         class_list = []
         for item in data_list:
-            class_list.append(cls(item['id']))
+            class_list.append(cls(item['id'], item['fields'] if 'fields' in item else []))
         return class_list
 
     # Private methods
