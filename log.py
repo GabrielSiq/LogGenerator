@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from config import DEFAULT_PATHS, SUPPORTED_FORMATS
@@ -39,12 +40,12 @@ class LogWriter:
         output = []
         lid = 0
         while not log_list.is_empty():
-            log = LogWriter._parse_event(log_list.pop())
-            log['log_id'] = lid
+            log = OrderedDict({'log_id': lid})
+            log.update(LogWriter._parse_event(log_list.pop()))
             output.append(log)
             lid += 1
         with file_to_open.open(mode='w') as f:
-            json.dump(output, f, indent=4)
+            json.dump(output, f, indent=2)
 
     @staticmethod
     def _parse_event(item):
