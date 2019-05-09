@@ -21,15 +21,15 @@ class ModelBuilder:
         self.models_file = models_file
         self.activities = dict()
         activity_list = self.create_activities()
-        for act in activity_list:
-            self.activities[act.id] = act
+        self.activities = dict((act.id, act) for act in activity_list)
 
     # Public methods
     def build_all(self):
+        models = self.create_process_model()
+        process_list = [x.id for x in models]
         rm = ResourceManager(self.create_resources())
-        dm = DataManager(self.create_data())
-        # pm =
-        return rm, dm
+        dm = DataManager(self.create_data(), process_list=process_list)
+        return models, rm, dm
 
     def create_activities(self):
         return self._create_from_file(self.activities_file, FILE_ROOT['activities'], self._parse_activity)

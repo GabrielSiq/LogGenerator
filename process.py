@@ -4,6 +4,7 @@ from data import DataRequirement
 
 class ProcessManager:
     # Initialization and instance variables
+    # TODO: REMOVE IF UNUSED
     def __init__(self):
         pass
 
@@ -13,11 +14,7 @@ class ProcessInstance:
         self.process_id = pid
         self.process_instance_id = piid
         self.process_reference = process_reference
-        self.last_activities = dict()
-        for activity in self.process_reference.activities:
-            self.last_activities[activity] = 1
-        for gateway in self.process_reference.gateways:
-            self.last_activities[gateway] = 1
+        self.last_activities = dict((activity, 1) for activity in {**self.process_reference.activities, **self.process_reference.gateways})
 
     def get_element_instance_id(self, id):
         if id == "END":
@@ -41,9 +38,7 @@ class Process:
         self.arrival_rate = arrival_rate
         self.deadline = deadline
         self.activities = activities
-        self.gateways = dict()
-        for gate in gateways:
-            self.gateways[gate.id] = gate
+        self.gateways = dict((gate.id, gate) for gate in gateways)
         self.transitions = transitions
         self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
 

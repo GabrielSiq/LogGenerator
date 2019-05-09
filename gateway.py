@@ -53,7 +53,6 @@ class GateRule:
     def __init__(self, gates, rule):
         self.gates = gates
         self.decision = getattr(RULE_MODULE, rule)
-        pass
 
     def get_gate(self, input_data=None):
         if input_data is not None:

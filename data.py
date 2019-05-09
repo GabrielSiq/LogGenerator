@@ -1,41 +1,42 @@
 from collections import OrderedDict
+from copy import deepcopy
 
 from config import DATA_TYPES
 
 
 class DataManager:
     # Initialization and instance variables
-    def __init__(self, data_list):
-        self.data_store = {}
-
-        for data in data_list:
-            self.data_store[data.id] = data
-
-    #TODO: OBJECTS should be stored by process instance id.
-    #TODO: When initializing a process, we should also instantiate a copy of the data items it uses.
+    def __init__(self, data_list, process_list=None):
+        self.reference_data = dict((data.id, data) for data in data_list)
+        self.data_store = dict.fromkeys(process_list, dict()) if process_list is not None else dict()
 
     # Public methods
     def read_object(self, object_id, fields=None):
         if fields is not None:
-            return {k: self.data_store[object_id].get_fields()[k] for k in fields}
-        return self.data_store[object_id].get_fields()
+            return {k: self.reference_data[object_id].get_fields()[k] for k in fields}
+        return self.reference_data[object_id].get_fields()
 
     def update_object(self, object_id, updated_fields):
         for field, value in updated_fields.items():
-            self.data_store[object_id].set_field(field, value)
+            self.reference_data[object_id].set_field(field, value)
 
     def create_object(self, type, id, name, fields):
-        if id in self.data_store:
+        if id in self.reference_data:
             raise ValueError("An object with ID %s already exists." % id)
         if type == DATA_TYPES['form']:
             new = Form(id, name, fields)
         else:
             raise ValueError("Object type %s not supported!" % type)
-        self.data_store[id] = new
+        self.reference_data[id] = new
+
+    def create_instance(self, object_id, process_id, process_instance_id):
+        # Currently, each process can only have one instance of each data object.
+        if process_id in self.data_store:
+            self.data_store[process_id][process_instance_id] = deepcopy(self.reference_data[object_id])
 
     def delete_object(self, id):
         try:
-            self.data_store.pop(id)
+            self.reference_data.pop(id)
         except KeyError:
             raise KeyError("No object found with ID %s." % id)
 
@@ -87,9 +88,7 @@ class Form(DataObject):
         if isinstance(fields, OrderedDict):
             self.fields = fields
         elif isinstance(fields, list):
-            self.fields = OrderedDict()
-            for field in fields:
-                self.fields[field] = None
+            self.fields = OrderedDict().fromkeys(fields, None)
         else:
             raise TypeError("Wrong type for 'fields' variable supplied")
 

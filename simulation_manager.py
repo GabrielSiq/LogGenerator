@@ -42,9 +42,8 @@ class SimulationManager:
         # list_of_models = model.create_process_model()
         # for process in list_of_models:
         #     print(process)
-        self.models = model.create_process_model()
         # print("\nTesting data manager:")
-        self.rm, self.dm = model.build_all()
+        self.models, self.rm, self.dm = model.build_all()
 
         req = model.activities['quality'].resources[0]
 
@@ -179,6 +178,8 @@ class SimulationManager:
         for item in arrivals:
             if minutes is None or item <= minutes:
                 instance = model.new()
+                for data in instance.process_reference.data_objects:
+                    self.dm.create_instance(data.id, instance.process_id, instance.process_instance_id)
                 self.running_processes.append(instance)
                 act = instance.process_reference.get_first_activity()[0]
                 self.execution_queue.push(QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))
