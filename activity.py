@@ -1,10 +1,12 @@
+import importlib
 import math
-from config import PRIORITY_VALUES
+from config import PRIORITY_VALUES, DEFAULT_PATHS
 from data import DataRequirement
 from duration import Duration
 from failure import Failure
 from resource import ResourceRequirement
 
+DATA_MODULE = importlib.import_module(DEFAULT_PATHS['data_function'])
 
 class Activity:
     # Activities contained in process models
@@ -16,6 +18,7 @@ class Activity:
         self.duration = Duration(distribution)
         self.data_input = DataRequirement.from_list(data_input)
         self.data_output = DataRequirement.from_list(data_output)
+        self.process_data = getattr(DATA_MODULE, self.id) if data_output is not None else None
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0

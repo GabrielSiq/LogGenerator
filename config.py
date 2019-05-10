@@ -44,7 +44,8 @@ DEFAULT_PATHS = {
     'models': 'input/models.xml',
     'resources': 'input/resources.xml',
     'log': 'output/',
-    'rules': 'input.rules'
+    'rules_function': 'input.rules',
+    'data_function': 'input.data'
 }
 
 FILE_ROOT = {

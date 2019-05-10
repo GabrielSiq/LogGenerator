@@ -1,5 +1,4 @@
 from heapq import heappush, heappop
-import math
 from activity import Activity
 from config import DAYS, PRIORITY_VALUES
 from gateway import Gateway
@@ -26,23 +25,6 @@ class SimulationManager:
     # Public methods
     def main(self):
         model = ModelBuilder()
-        # print("\nParsing activities:")
-        # list_of_activities = model.create_activities()
-        # for activity in list_of_activities:
-        #     print(activity)
-        # print("\nParsing resources:")
-        # list_of_resources = model.create_resources()
-        # for resource in list_of_resources:
-        #     print(resource)
-        # print("\nParsing data:")
-        # list_of_data = model.create_data()
-        # for data in list_of_data:
-        #     print(data)
-        # print("\nParsing models:")
-        # list_of_models = model.create_process_model()
-        # for process in list_of_models:
-        #     print(process)
-        # print("\nTesting data manager:")
         self.models, self.rm, self.dm = model.build_all()
 
         req = model.activities['quality'].resources[0]
@@ -100,6 +82,8 @@ class SimulationManager:
         duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
         timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
         max_duration = min(duration, timeout)
+        # data is read at the beginning and written at the end.
+        data = self.dm.read_all(activity.data_input, item.process_id, item.process_instance_id) if item.data is None else item.data
         # TODO: What about physical resources? The same logic doesn't apply...
         if activity.resources is not None:
             date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
@@ -123,11 +107,18 @@ class SimulationManager:
                         LogItem(date, item.process_id, item.process_instance_id,
                                 item.element_id, item.element_instance_id,
                                 'pause_activity'))
-                    self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds()))
+                    self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds(), data))
                     return
 
         # TODO: CHECK cases where no resources or retries/fails
         # Completed activity
+
+        # Gets updated data from the activity, and updates it in the data manager
+        if activity.process_data is not None:
+            output = activity.process_data(data)
+            for id, fields in output.items():
+                self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
+
         self.log_queue.push(
             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
                     'start_activity'))
@@ -209,7 +200,7 @@ class PriorityQueue:
 
 
 class QueueItem:
-    def __init__(self, process, element_id, element_instance_id, start, element, duration=None, timeout=None):
+    def __init__(self, process, element_id, element_instance_id, start, element, duration=None, timeout=None, data=None):
         self.process_id = process.process_id
         self.process_instance_id = process.process_instance_id
         self.element_id = element_id
@@ -220,19 +211,20 @@ class QueueItem:
         self.running_process = process
         self.leftover_duration = duration
         self.leftover_timeout = timeout
+        self.data = data
 
     def successor(self, element, duration=0, delay=0):
         return QueueItem(self.running_process, element.id, self.running_process.get_element_instance_id(element.id), self.start + timedelta(seconds=duration + delay), element)
 
-    def leftover(self, original_duration, actual_duration):
+    def leftover(self, original_duration, actual_duration, data):
         leftover_duration = self.leftover_duration - actual_duration if self.leftover_duration is not None else original_duration - actual_duration
         leftover_timeout = self.leftover_timeout - actual_duration if self.leftover_timeout is not None else self.element.timeout - actual_duration
-        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=actual_duration), self.element, duration=leftover_duration, timeout=leftover_timeout)
+        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=actual_duration), self.element, duration=leftover_duration, timeout=leftover_timeout, data=data)
 
     def postpone(self, new_start):
         # TODO: Decide if timeout is activity running time or if it's deadline after it starts. It possibly makes more sense to be deadline after it starts, so this logic will have to change a bit. postponing will reduce from leftover timeout if the activity has already started. change resources as well. Maybe we could record the original start time.
         return QueueItem(self.running_process, self.element_id, self.element_instance_id,
-                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout)
+                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout, data=self.data)
 
     def __lt__(self, other):
         if self.start < other.start:

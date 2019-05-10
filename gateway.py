@@ -2,7 +2,7 @@ import importlib.util
 from numpy import random
 from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS
 
-RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules'])
+RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules_function'])
 
 
 class Gateway:

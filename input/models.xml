@@ -37,14 +37,14 @@
 					<DataObject id="app" type="form">
 						<Fields>
 							<Field name="ApplicationInfo"/>
+							<Field name="HostChecklist"/>
 						</Fields>
 					</DataObject>
 				</DataInput>
 				<DataOutput>
 					<DataObject id="app" type="form">
 						<Fields>
-							<Field name="HostChecklist"/>
-							<Field name="QualityChecklist"/>
+							<Field name="VerifiedChecklist"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>

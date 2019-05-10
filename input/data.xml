@@ -4,6 +4,7 @@
 		<Fields>
 			<Field name="ApplicationInfo"></Field>
 			<Field name="HostChecklist"></Field>
+			<Field name="VerifiedChecklist"></Field>
 			<Field name="QualityChecklist"></Field>
 			<Field name="InspectionReport"></Field>
 			<Field name="FixReport"></Field>

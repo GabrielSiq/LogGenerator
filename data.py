@@ -11,14 +11,19 @@ class DataManager:
         self.data_store = dict.fromkeys(process_list, dict()) if process_list is not None else dict()
 
     # Public methods
-    def read_object(self, object_id, fields=None):
-        if fields is not None:
-            return {k: self.reference_data[object_id].get_fields()[k] for k in fields}
-        return self.reference_data[object_id].get_fields()
 
-    def update_object(self, object_id, updated_fields):
+    def read_all(self, requirements_list, process_id, process_instance_id):
+        if requirements_list is not None:
+            return dict((requirement.id, self.read_object(requirement, process_id, process_instance_id)) for requirement in requirements_list)
+
+    def read_object(self, requirement, process_id, process_instance_id):
+        if requirement.fields is not None:
+            return {k: self.data_store[process_id][process_instance_id][requirement.id].get_fields()[k] for k in requirement.fields}
+        return self.data_store[process_id][process_instance_id][requirement.id].get_fields()
+
+    def update_object(self, object_id, process_id, process_instance_id, updated_fields):
         for field, value in updated_fields.items():
-            self.reference_data[object_id].set_field(field, value)
+            self.data_store[process_id][process_instance_id][object_id].set_field(field, value)
 
     def create_object(self, type, id, name, fields):
         if id in self.reference_data:
@@ -32,7 +37,7 @@ class DataManager:
     def create_instance(self, object_id, process_id, process_instance_id):
         # Currently, each process can only have one instance of each data object.
         if process_id in self.data_store:
-            self.data_store[process_id][process_instance_id] = deepcopy(self.reference_data[object_id])
+            self.data_store[process_id][process_instance_id] = {object_id: deepcopy(self.reference_data[object_id])}
 
     def delete_object(self, id):
         try:
