@@ -1,4 +1,6 @@
 import importlib
+from typing import Union
+
 import math
 from config import PRIORITY_VALUES, DEFAULT_PATHS
 from data import DataRequirement
@@ -13,7 +15,7 @@ class Activity:
     # Activities contained in process models
 
     # Initialization and instance variables
-    def __init__(self, id, name, distribution=0, data_input=None, data_output=None, resources=None, failure_rate=0, retries=0, timeout=None, priority='normal'):
+    def __init__(self, id: str, name: str, distribution: Union[dict, int] = 0, data_input: list = None, data_output: list = None, resources: list = None, failure_rate: float = 0, retries: int = 0, timeout: int = None, priority: str = 'normal') -> None:
         self.id = id
         self.name = name
         self.duration = Duration(distribution)
@@ -22,8 +24,8 @@ class Activity:
         self.process_data = getattr(DATA_MODULE, self.id) if data_output is not None else None
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
-        self.retries = int(retries) if retries is not None else 0
-        self.timeout = int(timeout) if timeout is not None else math.inf
+        self.retries = retries if retries is not None else 0
+        self.timeout = timeout if timeout is not None else math.inf
         if priority is None:
             self.priority = PRIORITY_VALUES['normal']
         elif priority.lower() in PRIORITY_VALUES:
@@ -32,23 +34,28 @@ class Activity:
             raise TypeError('Value %s is not supported for priority.' % priority)
 
     # Public methods
-    def generate_duration(self):
+    def generate_duration(self) -> int:
         # Returns an instance of the randomly generated duration time
         return self.duration.generate()
 
-    def generate_failure(self):
+    def generate_failure(self) -> bool:
         return self.failure.check_failure()
 
-    def update(self, fields):
-        # TODO: improve this function to generate some of the necessary classes (e.g. Duration)
+    def update(self, fields: dict) -> None:
         for key, value in fields.items():
             if key == 'data_input' or key == 'data_output':
                 setattr(self, key, DataRequirement.from_list(value))
+            elif key == 'duration':
+                setattr(self, key, Duration(value))
+            elif key == 'failure':
+                setattr(self, key, Failure(value))
+            elif key == 'priority':
+                setattr(self, key, PRIORITY_VALUES[value.lower()])
             else:
                 setattr(self, key, value)
 
     @staticmethod
-    def end():
+    def end() -> 'Activity':
         return Activity("END", "END")
 
     # Private methods

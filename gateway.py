@@ -70,11 +70,9 @@ class GateRule:
 
 
 class GateDistribution:
-    # TODO: Check types in initialization, for public functions
+    # TODO: Add type hints to all functions
     # Initialization and instance variables
     def __init__(self, gates, pdf):
-        # gates is a list of the gate ids
-        # pdf is a list of probabilities ordered by gates
         self.gates = gates
         self.pdf = list(map(float, pdf))
         if sum(self.pdf) != 1:

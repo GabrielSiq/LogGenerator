@@ -72,7 +72,7 @@ class ModelBuilder:
         if distribution_child is not None:
             fields['distribution'] = self._parse_distribution(distribution_child)
         elif duration_child is not None:
-            fields['distribution'] = duration_child.text
+            fields['distribution'] = int(duration_child.text)
 
         data_input = []
         data_input_child = activity_child.find('DataInput')
@@ -120,7 +120,7 @@ class ModelBuilder:
                 # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource.
                 try:
                     res = resource.attrib
-                    res['qty'] = resource.text
+                    res['qty'] = int(resource.text)
                     resources.append(res)
                 except AttributeError:
                     print('Poorly formatted resource')
@@ -131,12 +131,12 @@ class ModelBuilder:
         if failure_child is not None:
             failure_rate = failure_child.text
             retries = failure_child.get('retries')
-            fields['failure_rate'] = failure_rate
-            fields['retries'] = retries
+            fields['failure_rate'] = float(failure_rate)
+            fields['retries'] = int(retries)
 
         # TODO: implement similar try/except methodology for others.
         try:
-            fields['timeout'] = activity_child.find('Timeout').text
+            fields['timeout'] = int(activity_child.find('Timeout').text)
         except AttributeError:
             pass
 
@@ -175,6 +175,7 @@ class ModelBuilder:
 
     @staticmethod
     def _parse_distribution(distribution_child):
+        # TODO: do this less lazily to return the correct types
         if distribution_child is None:
             return None
         try:

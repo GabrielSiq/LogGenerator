@@ -24,6 +24,7 @@ class SimulationManager:
 
     # Public methods
     def main(self):
+        #TODO: Remove unnecessary prints.
         model = ModelBuilder()
         self.models, self.rm, self.dm = model.build_all()
 
