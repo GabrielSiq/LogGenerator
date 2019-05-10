@@ -6,7 +6,7 @@ class Failure:
 
     # Initialization and instance variables
     def __init__(self, failure_rate):
-        self.rate = failure_rate
+        self.rate = float(failure_rate)
 
     # Public methods
     def check_failure(self):

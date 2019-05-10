@@ -1,9 +1,6 @@
-from random import random
-
-
-def checklistCompleted():
-    a = random()
-    if a > 0.8:
+def checklistCompleted(input):
+    app = input['app']
+    if app['VerifiedChecklist'] is True:
         return 'yes'
     else:
         return 'no'

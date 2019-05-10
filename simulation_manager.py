@@ -83,7 +83,7 @@ class SimulationManager:
         timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
         max_duration = min(duration, timeout)
         # data is read at the beginning and written at the end.
-        data = self.dm.read_all(activity.data_input, item.process_id, item.process_instance_id) if item.data is None else item.data
+        data = self.dm.read_all(item.process_id, item.process_instance_id, requirements_list=activity.data_input) if item.data is None else item.data
         # TODO: What about physical resources? The same logic doesn't apply...
         if activity.resources is not None:
             date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
@@ -110,39 +110,49 @@ class SimulationManager:
                     self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds(), data))
                     return
 
-        # TODO: CHECK cases where no resources or retries/fails
-        # Completed activity
-
-        # Gets updated data from the activity, and updates it in the data manager
-        if activity.process_data is not None:
-            output = activity.process_data(data)
-            for id, fields in output.items():
-                self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
-
         self.log_queue.push(
             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
                     'start_activity'))
-        if duration > timeout:
+
+        # Failed
+        if activity.failure.check_failure():
+            # Failed
             self.log_queue.push(
                 LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
                         item.element_id, item.element_instance_id,
-                        'timeout'))
+                        'failed'))
+            if item.attempt < activity.retries:
+                self.execution_queue.push(item.repeat(max_duration + 1))
         else:
-            self.log_queue.push(
-                LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
-                        item.element_id, item.element_instance_id,
-                        'end_activity'))
-            # add next to queue
-            element, delay = item.running_process.process_reference.get_next(source=activity.id)
-            if element is not None:
-                self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
+            # Completed activity
+
+            # Gets updated data from the activity, and updates it in the data manager
+            if activity.process_data is not None:
+                output = activity.process_data(data)
+                for id, fields in output.items():
+                    self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
+            if duration > timeout:
+                self.log_queue.push(
+                    LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                            item.element_id, item.element_instance_id,
+                            'timeout'))
+            else:
+                self.log_queue.push(
+                    LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                            item.element_id, item.element_instance_id,
+                            'end_activity'))
+                # add next to queue
+                element, delay = item.running_process.process_reference.get_next(source=activity.id)
+                if element is not None:
+                    self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
 
     def _simulate_gateway(self, item):
         # TODO: Missing merge and rule logic.
 
         #TODO: For rule: send together a dict with all data objects tied to that process execution. Then, the decision code should figure it out. Come back and test it.
         gateway = item.element
-        gates = gateway.get_gate()
+        data = self.dm.read_all(item.process_id, item.process_instance_id)
+        gates = gateway.get_gate(input_data=data)
         for gate in gates:
             element, delay = item.running_process.process_reference.get_next(source=gateway.id, gate=gate)
             self.execution_queue.push(item.successor(element, delay=delay))
@@ -200,7 +210,7 @@ class PriorityQueue:
 
 
 class QueueItem:
-    def __init__(self, process, element_id, element_instance_id, start, element, duration=None, timeout=None, data=None):
+    def __init__(self, process, element_id, element_instance_id, start, element, duration=None, timeout=None, data=None, attempt=0):
         self.process_id = process.process_id
         self.process_instance_id = process.process_instance_id
         self.element_id = element_id
@@ -212,9 +222,13 @@ class QueueItem:
         self.leftover_duration = duration
         self.leftover_timeout = timeout
         self.data = data
+        self.attempt = attempt
 
     def successor(self, element, duration=0, delay=0):
         return QueueItem(self.running_process, element.id, self.running_process.get_element_instance_id(element.id), self.start + timedelta(seconds=duration + delay), element)
+
+    def repeat(self, duration):
+        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=duration), self.element, attempt=self.attempt + 1)
 
     def leftover(self, original_duration, actual_duration, data):
         leftover_duration = self.leftover_duration - actual_duration if self.leftover_duration is not None else original_duration - actual_duration

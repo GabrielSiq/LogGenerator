@@ -12,9 +12,11 @@ class DataManager:
 
     # Public methods
 
-    def read_all(self, requirements_list, process_id, process_instance_id):
+    def read_all(self, process_id, process_instance_id, requirements_list = None):
         if requirements_list is not None:
             return dict((requirement.id, self.read_object(requirement, process_id, process_instance_id)) for requirement in requirements_list)
+        else:
+            return dict((object_id, self.data_store[process_id][process_instance_id][object_id].get_fields()) for object_id in self.data_store[process_id][process_instance_id])
 
     def read_object(self, requirement, process_id, process_instance_id):
         if requirement.fields is not None:

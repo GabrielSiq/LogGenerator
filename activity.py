@@ -8,6 +8,7 @@ from resource import ResourceRequirement
 
 DATA_MODULE = importlib.import_module(DEFAULT_PATHS['data_function'])
 
+
 class Activity:
     # Activities contained in process models
 
@@ -21,7 +22,7 @@ class Activity:
         self.process_data = getattr(DATA_MODULE, self.id) if data_output is not None else None
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
-        self.retries = retries if retries is not None else 0
+        self.retries = int(retries) if retries is not None else 0
         self.timeout = int(timeout) if timeout is not None else math.inf
         if priority is None:
             self.priority = PRIORITY_VALUES['normal']
