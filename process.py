@@ -43,7 +43,7 @@ class Process:
     # Public methods
 
     def get_arrival_rate(self, day: str, hour: int) -> int:
-        # TODO: Improve modeling of arrival rate to allow for various levels of granularity
+        # TODO: Improve modeling of arrival rate to allow for various levels of granularity (2h)
         # For now, arrival rate is only represented in terms of instances per hour.
         try:
             return self.arrival_rate[day][hour]

@@ -16,13 +16,13 @@ class Duration:
     # Public methods
     def generate(self) -> Optional[int]:
         if self.type == 'normal':
-            return int(random.normal(loc=int(self.parameters['mean']), scale=int(self.parameters['variance'])))
+            return int(random.normal(loc=self.parameters['mean'], scale=self.parameters['variance']))
         elif self.type == 'uniform':
-            return int(random.uniform(low=int(self.parameters['low']), high=int(self.parameters['high'])))
+            return int(random.uniform(low=self.parameters['low'], high=self.parameters['high']))
         elif self.type == 'triangular':
-            return int(random.triangular(left=int(self.parameters['left']), mode=int(self.parameters['mode']), right=int(self.parameters['right'])))
+            return int(random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right']))
         elif self.type == 'beta':
-            return int(random.beta(a=int(self.parameters['a']), b=int(self.parameters['b'])))
+            return int(random.beta(a=self.parameters['a'], b=self.parameters['b']))
         elif self.type == 'const':
             return int(self.parameters['value'])
         else:

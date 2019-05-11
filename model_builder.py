@@ -11,7 +11,7 @@ from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
-# TODO: Implement XML validation.
+# TODO: Implement XML validation. (5h)
 
 
 class ModelBuilder:
@@ -119,7 +119,7 @@ class ModelBuilder:
 
         if resources_child is not None:
             for resource in resources_child:
-                # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource.
+                # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource. (2h)
                 try:
                     res = resource.attrib
                     res['qty'] = int(resource.text)
@@ -136,7 +136,7 @@ class ModelBuilder:
             fields['failure_rate'] = float(failure_rate)
             fields['retries'] = int(retries)
 
-        # TODO: implement similar try/except methodology for others.
+        # TODO: implement similar try/except methodology for others. (2h)
         try:
             fields['timeout'] = int(activity_child.find('Timeout').text)
         except AttributeError:
@@ -177,11 +177,12 @@ class ModelBuilder:
 
     @staticmethod
     def _parse_distribution(distribution_child: ElementTree) -> Optional[dict]:
-        # TODO: do this less lazily to return the correct types
         if distribution_child is None:
             return None
         try:
-            return distribution_child.attrib
+            attributes = distribution_child.attrib
+            [attributes.update({key: int(value)}) for key, value in attributes.items() if key != 'type']
+            return attributes
         except AttributeError:
             print('Poorly formatted duration.')
 

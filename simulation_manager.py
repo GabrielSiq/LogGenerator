@@ -26,7 +26,7 @@ class SimulationManager:
 
     # Public methods
     def main(self):
-        #TODO: Remove unnecessary prints.
+        #TODO: Remove unnecessary prints. (15 min)
         model = ModelBuilder()
         self.models, self.rm, self.dm = model.build_all()
 
@@ -80,15 +80,15 @@ class SimulationManager:
             return self._simulate_gateway(item)
 
     def _simulate_activity(self, item: QueueItem) -> bool:
-        # TODO: Add data and resource information to log.
-        # TODO: Decide what does this return.
+        # TODO: Add data and resource information to log. (1h)
+        # TODO: Decide what does this return. (30min)
         activity = item.element
         duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
         timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
         max_duration = min(duration, timeout)
         # data is read at the beginning and written at the end.
         data = self.dm.read_all(item.process_id, item.process_instance_id, requirements_list=activity.data_input) if item.data is None else item.data
-        # TODO: What about physical resources? The same logic doesn't apply...
+        # TODO: What about physical resources? The same logic doesn't apply... (1h)
         if activity.resources is not None:
             date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
             if date < item.start + timedelta(seconds=max_duration):
@@ -152,7 +152,7 @@ class SimulationManager:
         return True
 
     def _simulate_gateway(self, item: QueueItem) -> bool:
-        # TODO: Missing merge logic.
+        # TODO: Missing merge logic. (1h)
 
         gateway = item.element
         data = self.dm.read_all(item.process_id, item.process_instance_id)
