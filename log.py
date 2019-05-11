@@ -10,8 +10,8 @@ from queue import PriorityQueue
 class LogItem:
 
     def __init__(self, date: datetime, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, status: str) -> None:
-        # TODO: DECIDE ON DATE FORMAT FOR LOG
-        self.timestamp = date.strftime("%Y%m%d-%H%M%S")  # date.timestamp()
+        self.timestamp = int(date.timestamp())
+        self.date = date.strftime("%m/%d/%Y-%H:%M:%S")
         self.process_id = process_id
         self.process_instance_id = process_instance_id
         self.activity_id = activity_id
