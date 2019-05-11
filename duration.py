@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from numpy import random
 
 
@@ -14,7 +14,7 @@ class Duration:
             self.parameters = {'value': distribution if distribution is not None else 0}
 
     # Public methods
-    def generate(self) -> Union[int, None]:
+    def generate(self) -> Optional[int]:
         if self.type == 'normal':
             return int(random.normal(loc=int(self.parameters['mean']), scale=int(self.parameters['variance'])))
         elif self.type == 'uniform':

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Any
+from typing import List, Union, Any, Optional
 from collections import OrderedDict
 from copy import deepcopy
 
@@ -62,7 +62,7 @@ class DataRequirement:
 
     # Public methods
     @classmethod
-    def from_list(cls, data_list: List[dict]) -> Union[List[DataRequirement], None]:
+    def from_list(cls, data_list: List[dict]) -> Optional[List[DataRequirement]]:
         if data_list is None or data_list == []:
             return None
         class_list = []
@@ -105,7 +105,7 @@ class Form(DataObject):
     def get_fields(self) -> OrderedDict:
         return self.fields
 
-    def get_field(self, field_id: str) -> Union[str, None]:
+    def get_field(self, field_id: str) -> Optional[str]:
         return self.fields[field_id]
 
     def set_field(self, field_id: str, field_value: Any) -> None:

@@ -1,4 +1,4 @@
-from typing import Tuple, List, Callable, Union
+from typing import Tuple, List, Callable, Union, Optional
 
 from activity import Activity
 from transition import Transition
@@ -176,7 +176,7 @@ class ModelBuilder:
         return res
 
     @staticmethod
-    def _parse_distribution(distribution_child: ElementTree) -> Union[dict, None]:
+    def _parse_distribution(distribution_child: ElementTree) -> Optional[dict]:
         # TODO: do this less lazily to return the correct types
         if distribution_child is None:
             return None
@@ -295,7 +295,7 @@ class ModelBuilder:
             fields[field.get('name')] = field.text
         return name, fields
 
-    def _clone_activity(self, id: str) -> Union[Activity, None]:
+    def _clone_activity(self, id: str) -> Optional[Activity]:
         if id not in self.activities:
             return None
         else:

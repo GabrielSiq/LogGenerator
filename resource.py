@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import timedelta, datetime
 from heapq import heappush, heappop
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Optional
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
 
@@ -128,7 +128,7 @@ class ResourceRequirement:
         return cls(RESOURCE_TYPES['human'], quantity=quantity, org=org, dept=dept, role=role)
 
     @classmethod
-    def from_list(cls, resource_list: List[dict]) -> Union[List[ResourceRequirement], None]:
+    def from_list(cls, resource_list: List[dict]) -> Optional[List[ResourceRequirement]]:
         if not resource_list:
             return None
         class_list = []

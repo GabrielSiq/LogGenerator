@@ -71,7 +71,6 @@ class GateRule:
 
 
 class GateDistribution:
-    # TODO: Add type hints to all functions
     # Initialization and instance variables
     def __init__(self, gates: List[str], pdf: List[float]) -> None:
         self.gates = gates
