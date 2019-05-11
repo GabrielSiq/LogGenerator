@@ -1,13 +1,14 @@
 import importlib.util
 from numpy import random
 from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS
+from typing import List, Dict
 
 RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules_function'])
 
 
 class Gateway:
     # Initialization and instance variables
-    def __init__(self, id, name, type, gates, distribution=None, rule=None):
+    def __init__(self, id: str, name: str, type: str, gates: List[str], distribution: List[float] = None, rule: str = None) -> None:
         self.id = id
         self.name = name
         self.type = type
@@ -30,7 +31,7 @@ class Gateway:
             raise ValueError("Value %s is not a valid gateway type." % self.type)
 
     # Public methods
-    def get_gate(self, input_data=None):
+    def get_gate(self, input_data: Dict[str, dict] = None) -> List[str]:
         if self.type == GATEWAY_TYPES['parallel'] or self.type == GATEWAY_TYPES['merge']:
             return self.gates
         elif self.type == GATEWAY_TYPES['choice']:
@@ -39,7 +40,7 @@ class Gateway:
             # Rule
             return [self.decider.get_gate(input_data)]
 
-    def get_inputs(self):
+    def get_inputs(self) -> List[str]:
         if self.type == GATEWAY_TYPES['merge']:
             return self.merge_inputs
 
@@ -50,11 +51,11 @@ class Gateway:
 
 class GateRule:
     # Initialization and instance variables
-    def __init__(self, gates, rule):
+    def __init__(self, gates: List[str], rule: str) -> None:
         self.gates = gates
         self.decision = getattr(RULE_MODULE, rule)
 
-    def get_gate(self, input_data=None):
+    def get_gate(self, input_data: Dict[str, dict] = None) -> str:
         if input_data is not None:
             gate = self.decision(input_data)
         else:
@@ -72,14 +73,14 @@ class GateRule:
 class GateDistribution:
     # TODO: Add type hints to all functions
     # Initialization and instance variables
-    def __init__(self, gates, pdf):
+    def __init__(self, gates: List[str], pdf: List[float]) -> None:
         self.gates = gates
-        self.pdf = list(map(float, pdf))
+        self.pdf = pdf
         if sum(self.pdf) != 1:
             raise ValueError("Probabilities don't add to 1.")
 
     # Public methods
-    def get_gate(self):
+    def get_gate(self) -> str:
         return random.choice(self.gates, p=self.pdf)
 
     # Private methods

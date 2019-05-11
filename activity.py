@@ -1,6 +1,6 @@
+from __future__ import annotations
 import importlib
 from typing import Union
-
 import math
 from config import PRIORITY_VALUES, DEFAULT_PATHS
 from data import DataRequirement
@@ -55,7 +55,7 @@ class Activity:
                 setattr(self, key, value)
 
     @staticmethod
-    def end() -> 'Activity':
+    def end() -> Activity:
         return Activity("END", "END")
 
     # Private methods

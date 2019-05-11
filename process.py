@@ -1,22 +1,20 @@
+from __future__ import annotations
 from activity import Activity
 from data import DataRequirement
+from typing import List, Union, Tuple, Dict
 
-
-class ProcessManager:
-    # Initialization and instance variables
-    # TODO: REMOVE IF UNUSED
-    def __init__(self):
-        pass
+from gateway import Gateway
+from transition import Transition
 
 
 class ProcessInstance:
-    def __init__(self, pid, piid, process_reference):
+    def __init__(self, pid: str, piid: int, process_reference: Process) -> None:
         self.process_id = pid
         self.process_instance_id = piid
         self.process_reference = process_reference
         self.last_activities = dict((activity, 1) for activity in {**self.process_reference.activities, **self.process_reference.gateways})
 
-    def get_element_instance_id(self, id):
+    def get_element_instance_id(self, id: str) -> int:
         if id == "END":
             return 0
         self.last_activities[id] += 1
@@ -32,7 +30,7 @@ class Process:
     instance = 0
 
     # Initialization and instance variables
-    def __init__(self, id, name, arrival_rate, deadline, activities, gateways, transitions, data_objects):
+    def __init__(self, id: str, name: str, arrival_rate: dict, deadline: int, activities: Dict[str, Activity], gateways: List[Gateway], transitions: List[Transition], data_objects: Union[List[DataRequirement], List[dict]]) -> None:
         self.id = id
         self.name = name
         self.arrival_rate = arrival_rate
@@ -44,23 +42,22 @@ class Process:
 
     # Public methods
 
-    def get_arrival_rate(self, day, hour):
+    def get_arrival_rate(self, day: str, hour: int) -> int:
         # TODO: Improve modeling of arrival rate to allow for various levels of granularity
         # For now, arrival rate is only represented in terms of instances per hour.
         try:
-            return int(self.arrival_rate[day][hour])
+            return self.arrival_rate[day][hour]
         except KeyError:
             return 0
 
-    def get_first_activity(self):
+    def get_first_activity(self) -> Union[Tuple[Activity, int], Tuple[Gateway, int]]:
         return self.get_next('START')
 
-    def new(self):
-        # TODO: Somehow initialize data objects. maybe the sim manager can call creation in the data manager.
+    def new(self) -> ProcessInstance:
         Process.instance += 1
         return ProcessInstance(self.id, self.instance, self)
 
-    def get_next(self, source, gate=None):
+    def get_next(self, source: str, gate: str = None) -> Union[Tuple[Activity, int], Tuple[Gateway, int], Tuple[None, None]]:
         # returns next activity or gateway id and the delay of the transition
         # For list structure
         for transition in self.transitions:

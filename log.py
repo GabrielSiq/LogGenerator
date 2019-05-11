@@ -1,13 +1,15 @@
+from __future__ import annotations
 import json
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from config import DEFAULT_PATHS, SUPPORTED_FORMATS
+from queue import PriorityQueue
 
 
 class LogItem:
 
-    def __init__(self, date, process_id, process_instance_id, activity_id, activity_instance_id, status):
+    def __init__(self, date: datetime, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, status: str) -> None:
         # TODO: DECIDE ON DATE FORMAT FOR LOG
         self.timestamp = date.strftime("%Y%m%d-%H%M%S")  # date.timestamp()
         self.process_id = process_id
@@ -20,14 +22,14 @@ class LogItem:
         self.data_output = []
 
     # Private methods
-    def __lt__(self, other):
+    def __lt__(self, other: LogItem) -> bool:
         return self.timestamp < other.timestamp or (self.timestamp == other.timestamp and self.process_id < self.process_id)
 
 
 class LogWriter:
     # Public methods
     @staticmethod
-    def write(log, location=DEFAULT_PATHS['log'], name=None, format='json'):
+    def write(log: PriorityQueue, location: str = DEFAULT_PATHS['log'], name: str = None, format: str = 'json') -> None:
         data_folder = Path(location)
         LogWriter._create_output_path(data_folder)
         if format == SUPPORTED_FORMATS['json']:
@@ -35,7 +37,7 @@ class LogWriter:
 
     # Private methods
     @staticmethod
-    def _write_json(log_list, location, name):
+    def _write_json(log_list: PriorityQueue, location: Path, name: str) -> None:
         file_to_open = LogWriter._unique_path(location, name, '.json')
         output = []
         lid = 0
@@ -48,11 +50,11 @@ class LogWriter:
             json.dump(output, f, indent=2)
 
     @staticmethod
-    def _parse_event(item):
+    def _parse_event(item: LogItem) -> dict:
         return item.__dict__
 
     @staticmethod
-    def _unique_path(location, name, suffix):
+    def _unique_path(location: Path, name: str, suffix: str) -> Path:
         if name is not None:
             file_to_open = (location / name).with_suffix(suffix)
             if file_to_open.exists():
@@ -67,7 +69,7 @@ class LogWriter:
         return file_to_open
 
     @staticmethod
-    def _create_output_path(location):
+    def _create_output_path(location: Path) -> None:
         location.mkdir(parents=True, exist_ok=True)
 
 

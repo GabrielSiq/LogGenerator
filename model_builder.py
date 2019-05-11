@@ -1,10 +1,12 @@
+from typing import Tuple, List, Callable, Union
+
 from activity import Activity
 from transition import Transition
 from gateway import Gateway
 from process import Process
 from config import RESOURCE_TYPES, DATA_TYPES, DEFAULT_PATHS, FILE_ROOT, GATEWAY_TYPES
-from resource import HumanResource, PhysicalResource, ResourceManager
-from data import Form, DataManager
+from resource import HumanResource, PhysicalResource, ResourceManager, Resource
+from data import Form, DataManager, DataObject
 from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
@@ -14,7 +16,7 @@ from copy import deepcopy
 
 class ModelBuilder:
     # Initialization and instance variables
-    def __init__(self, activities_file=DEFAULT_PATHS['activities'], resources_file=DEFAULT_PATHS['resources'], data_file=DEFAULT_PATHS['data'], models_file=DEFAULT_PATHS['models']):
+    def __init__(self, activities_file: str = DEFAULT_PATHS['activities'], resources_file: str = DEFAULT_PATHS['resources'], data_file: str = DEFAULT_PATHS['data'], models_file: str = DEFAULT_PATHS['models']) -> None:
         self.activities_file = activities_file
         self.resources_file = resources_file
         self.data_file = data_file
@@ -24,28 +26,28 @@ class ModelBuilder:
         self.activities = dict((act.id, act) for act in activity_list)
 
     # Public methods
-    def build_all(self):
+    def build_all(self) -> Tuple[List[Process], ResourceManager, DataManager]:
         models = self.create_process_model()
         process_list = [x.id for x in models]
         rm = ResourceManager(self.create_resources())
         dm = DataManager(self.create_data(), process_list=process_list)
         return models, rm, dm
 
-    def create_activities(self):
+    def create_activities(self) -> List[Activity]:
         return self._create_from_file(self.activities_file, FILE_ROOT['activities'], self._parse_activity)
 
-    def create_resources(self):
+    def create_resources(self) -> List[Resource]:
         return self._create_from_file(self.resources_file, FILE_ROOT['resources'], self._parse_resource)
 
-    def create_data(self):
+    def create_data(self) -> List[DataObject]:
         return self._create_from_file(self.data_file, FILE_ROOT['data'], self._parse_data)
 
-    def create_process_model(self):
+    def create_process_model(self) -> List[Process]:
         return self._create_from_file(self.models_file, FILE_ROOT['models'], self._parse_process_model)
 
     # Private methods
     @staticmethod
-    def _create_from_file(file_name, tag_name, parser):
+    def _create_from_file(file_name: str, tag_name: str, parser: Callable) -> list:
         container = []
         root = ElementTree.parse(file_name).getroot()
         for child in root:
@@ -53,12 +55,12 @@ class ModelBuilder:
                 container.append(parser(child))
         return container
 
-    def _parse_activity(self, activity_child):
+    def _parse_activity(self, activity_child: ElementTree) -> Activity:
         activity_fields = self._parse_activity_fields(activity_child)
 
         return Activity(id=activity_fields.get('id'), name=activity_fields.get('name'), distribution=activity_fields.get('distribution', 0), data_input=activity_fields.get('data_input'), data_output=activity_fields.get('data_output'), resources=activity_fields.get('resources'), failure_rate=activity_fields.get('failure_rate', 0), retries=activity_fields.get('retries', 0), timeout=activity_fields.get('timeout'), priority=activity_fields.get('priority', 'normal'))
 
-    def _parse_activity_fields(self, activity_child):
+    def _parse_activity_fields(self, activity_child: ElementTree) -> dict:
         fields = dict()
         fields['id'] = activity_child.get('id')
 
@@ -147,7 +149,7 @@ class ModelBuilder:
 
         return fields
 
-    def _parse_resource(self, resource_child):
+    def _parse_resource(self, resource_child: ElementTree) -> Resource:
         class_type = resource_child.get('type')
         id = resource_child.get('id')
         qty = resource_child.find('Quantity').text
@@ -165,7 +167,7 @@ class ModelBuilder:
             if distribution_child is not None:
                 delay = self._parse_distribution(distribution_child)
             else:
-                delay = duration_child.text if duration_child is not None else 0
+                delay = int(duration_child.text) if duration_child is not None else 0
             cons = True if resource_child.get('consumable').lower() == "true" else False
             res = PhysicalResource(id, type, qty, delay, cons)
 
@@ -174,7 +176,7 @@ class ModelBuilder:
         return res
 
     @staticmethod
-    def _parse_distribution(distribution_child):
+    def _parse_distribution(distribution_child: ElementTree) -> Union[dict, None]:
         # TODO: do this less lazily to return the correct types
         if distribution_child is None:
             return None
@@ -184,16 +186,16 @@ class ModelBuilder:
             print('Poorly formatted duration.')
 
     @staticmethod
-    def _parse_calendar(availability_child):
-        calendar = {}
+    def _parse_calendar(availability_child: ElementTree) -> dict:
+        calendar = dict()
         for day in availability_child:
             for block in day:
                 for time in range(int(block.get('start')), int(block.get('end'))):
                     calendar.setdefault(day.tag, {})
-                    calendar[day.tag][time] = True if block.text is None else block.text
+                    calendar[day.tag][time] = int(block.text) if block.text is not None else True
         return calendar
 
-    def _parse_process_model(self, model_child):
+    def _parse_process_model(self, model_child: ElementTree) -> Process:
         id = model_child.get('id')
         name = model_child.find('Name').text
         arrival_rate = self._parse_calendar(model_child.find('ArrivalRate'))
@@ -225,7 +227,7 @@ class ModelBuilder:
         return Process(id=id, name=name, arrival_rate=arrival_rate, deadline=deadline, activities=activities, gateways=gateways, transitions=transitions, data_objects=list(data_objects.values()))
 
     @staticmethod
-    def _parse_from_existing(item, resources, data_objects):
+    def _parse_from_existing(item: Activity, resources: list, data_objects: dict) -> Tuple[list, dict]:
         for resource in (item.resources or []):
             resources.append(resource)
         for data_object in (item.data_input or []):
@@ -235,7 +237,7 @@ class ModelBuilder:
         return resources, data_objects
 
     @staticmethod
-    def _parse_gateway(gateway_child):
+    def _parse_gateway(gateway_child: ElementTree) -> Gateway:
         id = gateway_child.get('id')
         name = gateway_child.find('Name').text
         type = gateway_child.find('Type').text.lower()
@@ -249,7 +251,7 @@ class ModelBuilder:
                 distribution = []
                 for gate in distribution_child:
                     gates.append(gate.get('id'))
-                    distribution.append(gate.text)
+                    distribution.append(float(gate.text))
             elif rule_child is not None and len(list(rule_child)):
                 for gate in rule_child:
                     gates.append(gate.get('id'))
@@ -262,7 +264,7 @@ class ModelBuilder:
                 gates.append(gate.get('id'))
         return Gateway(id=id, name=name, type=type, gates=gates, distribution=distribution, rule=rule)
 
-    def _parse_transition(self, transition_child):
+    def _parse_transition(self, transition_child: ElementTree) -> Transition:
         source = transition_child.get('source')
         destination = transition_child.get('destination')
         gate = transition_child.get('gate')
@@ -271,11 +273,11 @@ class ModelBuilder:
         if distribution_child is not None:
             distribution = self._parse_distribution(distribution_child)
         else:
-            distribution = duration_child.text if duration_child is not None else 0
+            distribution = int(duration_child.text) if duration_child is not None else 0
 
         return Transition(source=source, destination=destination, gate=gate, distribution=distribution)
 
-    def _parse_data(self, data_child):
+    def _parse_data(self, data_child: ElementTree) -> DataObject:
         id = data_child.get('id')
         type = data_child.get('type')
 
@@ -286,14 +288,14 @@ class ModelBuilder:
             raise ValueError('Data type %s not supported.' % type)
 
     @staticmethod
-    def _parse_form(form_child):
+    def _parse_form(form_child: ElementTree) -> Tuple[str, OrderedDict]:
         name = form_child.find('Name').text
         fields = OrderedDict()
         for field in form_child.find('Fields'):
             fields[field.get('name')] = field.text
         return name, fields
 
-    def _clone_activity(self, id):
+    def _clone_activity(self, id: str) -> Union[Activity, None]:
         if id not in self.activities:
             return None
         else:

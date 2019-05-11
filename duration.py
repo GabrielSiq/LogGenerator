@@ -1,19 +1,20 @@
+from typing import Union
 from numpy import random
 
 
 class Duration:
     # Initialization and instance variables
-    def __init__(self, distribution):
+    def __init__(self, distribution: Union[dict, int]) -> None:
         if type(distribution) is dict:
             self.type = distribution['type'].lower()
             distribution.pop('type')
             self.parameters = distribution
         else:
             self.type = 'const'
-            self.parameters = {'value': int(distribution) if distribution is not None else 0}
+            self.parameters = {'value': distribution if distribution is not None else 0}
 
     # Public methods
-    def generate(self):
+    def generate(self) -> Union[int, None]:
         if self.type == 'normal':
             return int(random.normal(loc=int(self.parameters['mean']), scale=int(self.parameters['variance'])))
         elif self.type == 'uniform':
