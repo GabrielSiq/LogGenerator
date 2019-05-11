@@ -1,3 +1,5 @@
+import copy
+
 from activity import Activity
 from config import DAYS
 from gateway import Gateway
@@ -7,7 +9,7 @@ from datetime import datetime, timedelta
 from random import randint
 
 from process import Process
-from queue import PriorityQueue, QueueItem
+from execution_queue import PriorityQueue, QueueItem
 
 
 class SimulationManager:
@@ -80,15 +82,16 @@ class SimulationManager:
             return self._simulate_gateway(item)
 
     def _simulate_activity(self, item: QueueItem) -> bool:
-        # TODO: Add data and resource information to log. (1h)
         # TODO: Decide what does this return. (30min)
         activity = item.element
         duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
         timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
         max_duration = min(duration, timeout)
         # data is read at the beginning and written at the end.
-        data = self.dm.read_all(item.process_id, item.process_instance_id, requirements_list=activity.data_input) if item.data is None else item.data
+        data = self.dm.read_requirements(item.process_id, item.process_instance_id, requirements_list=activity.data_input) if item.data is None else item.data
+        input = copy.deepcopy(data)
         # TODO: What about physical resources? The same logic doesn't apply... (1h)
+        assigned = None
         if activity.resources is not None:
             date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
             if date < item.start + timedelta(seconds=max_duration):
@@ -106,17 +109,17 @@ class SimulationManager:
                     self.log_queue.push(
                         LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
                                 item.element_instance_id,
-                                'start_activity'))
+                                'start_activity', resource=assigned, data_input=input))
                     self.log_queue.push(
                         LogItem(date, item.process_id, item.process_instance_id,
                                 item.element_id, item.element_instance_id,
-                                'pause_activity'))
+                                'pause_activity', resource=assigned))
                     self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds(), data))
                     return True
 
         self.log_queue.push(
             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
-                    'start_activity'))
+                    'start_activity', resource=assigned, data_input=input))
 
         # Failed
         if activity.failure.check_failure():
@@ -124,13 +127,14 @@ class SimulationManager:
             self.log_queue.push(
                 LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
                         item.element_id, item.element_instance_id,
-                        'failed'))
+                        'failed', resource=assigned))
             if item.attempt < activity.retries:
                 self.execution_queue.push(item.repeat(max_duration + 1))
         else:
             # Completed activity
 
             # Gets updated data from the activity, and updates it in the data manager
+            output = None
             if activity.process_data is not None:
                 output = activity.process_data(data)
                 for id, fields in output.items():
@@ -139,12 +143,12 @@ class SimulationManager:
                 self.log_queue.push(
                     LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
                             item.element_id, item.element_instance_id,
-                            'timeout'))
+                            'timeout', resource=assigned))
             else:
                 self.log_queue.push(
                     LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
                             item.element_id, item.element_instance_id,
-                            'end_activity'))
+                            'end_activity', resource=assigned, data_output=output))
                 # add next to queue
                 element, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:

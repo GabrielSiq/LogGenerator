@@ -14,11 +14,16 @@ class DataManager:
 
     # Public methods
 
-    def read_all(self, process_id: str, process_instance_id: int, requirements_list: List[DataRequirement] = None) -> dict:
+    def read_all(self, process_id: str, process_instance_id: int) -> dict:
+        return dict((object_id, self.data_store[process_id][process_instance_id][object_id].get_fields()) for object_id in self.data_store[process_id][process_instance_id])
+
+    def read_requirements(self, process_id: str, process_instance_id: int, requirements_list: List[DataRequirement]) -> Union[dict, None]:
         if requirements_list is not None:
-            return dict((requirement.id, self.read_object(requirement, process_id, process_instance_id)) for requirement in requirements_list)
+            return dict(
+                (requirement.id, self.read_object(requirement, process_id, process_instance_id)) for requirement in
+                requirements_list)
         else:
-            return dict((object_id, self.data_store[process_id][process_instance_id][object_id].get_fields()) for object_id in self.data_store[process_id][process_instance_id])
+            return None
 
     def read_object(self, requirement: DataRequirement, process_id: str, process_instance_id: int) -> dict:
         if requirement.fields is not None:

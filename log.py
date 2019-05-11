@@ -4,12 +4,12 @@ from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from config import DEFAULT_PATHS, SUPPORTED_FORMATS
-from queue import PriorityQueue
+from execution_queue import PriorityQueue
 
 
 class LogItem:
 
-    def __init__(self, date: datetime, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, status: str) -> None:
+    def __init__(self, date: datetime, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, status: str, resource=None, data_input=None, data_output=None) -> None:
         self.timestamp = int(date.timestamp())
         self.date = date.strftime("%m/%d/%Y-%H:%M:%S")
         self.process_id = process_id
@@ -17,9 +17,9 @@ class LogItem:
         self.activity_id = activity_id
         self.activity_instance_id = activity_instance_id
         self.status = status
-        self.resource = []
-        self.data_input = []
-        self.data_output = []
+        self.resource = resource
+        self.data_input = data_input
+        self.data_output = data_output
 
     # Private methods
     def __lt__(self, other: LogItem) -> bool:
@@ -51,7 +51,7 @@ class LogWriter:
 
     @staticmethod
     def _parse_event(item: LogItem) -> dict:
-        return item.__dict__
+        return {k: v for k, v in item.__dict__.items() if v is not None}
 
     @staticmethod
     def _unique_path(location: Path, name: str, suffix: str) -> Path:

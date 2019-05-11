@@ -19,12 +19,12 @@ class ResourceManager:
 
     # Public methods
 
-    def assign_resources(self, requirement_list: List[ResourceRequirement], process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> List[str]:
+    def assign_resources(self, requirement_list: List[ResourceRequirement], process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         # TODO: Implement the case when there are more than one requirement. Does it mean one or another or does it mean multiple? This is a modeling question that needs to be answered. (2h)
         for requirement in requirement_list:
             return self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
 
-    def assign_resource(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> List[str]:
+    def assign_resource(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         if duration is None:
             return self._assign_physical(requirement, start_time=start_time, duration=duration)
         else:
@@ -61,7 +61,7 @@ class ResourceManager:
                 result.update(self._assign_individual_human(available[i].id, start_time, (max_date - start_time).total_seconds(), process_id, process_instance_id, activity_id, activity_instance_id))
         return max_date, result
 
-    def _assign_physical(self, requirement: ResourceRequirement, start_time: datetime = None, duration: int = None) -> Dict[str, int]:
+    def _assign_physical(self, requirement: ResourceRequirement, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         # Assigns any necessary number of physical resources to a process. Resources can be consumable or not.
         available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
         result = {}
@@ -71,7 +71,7 @@ class ResourceManager:
             a_quantity = min(left, resource.get_quantity())
             result.update(self._assign_individual_physical(resource.id, a_quantity, start_time=start_time, end_time=start_time + timedelta(seconds=duration)))
             left -= a_quantity
-        return result
+        return start_time+timedelta(seconds=duration), result
 
     def _assign_individual_physical(self, resource_id: str, quantity: int, start_time: datetime = None, end_time: datetime = None) -> Dict[str, int]:
         self.physical_resources[resource_id].use(quantity, start_time=start_time, end_time=end_time)
