@@ -26,7 +26,7 @@ class Gateway:
             self.gates = gates
         elif self.type == GATEWAY_TYPES['merge']:
             self.merge_inputs = gates
-            self.gates = MERGE_OUTPUT
+            self.gates = [MERGE_OUTPUT]
         else:
             raise ValueError("Value %s is not a valid gateway type." % self.type)
 

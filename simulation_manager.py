@@ -23,7 +23,8 @@ class SimulationManager:
         self.end = end
         self.execution_queue = PriorityQueue()
         self.log_queue = PriorityQueue()
-        self.running_processes = list()
+        self.pending_merges = dict()
+        self.running_processes = dict()
         print(str(start), str(end))
 
     # Public methods
@@ -53,11 +54,11 @@ class SimulationManager:
 
         # return
 
-        act = self.models[0].activities['verify']
-        para = self.models[0].gateways['parallelTest']
-        merge = self.models[0].gateways['mergeTest']
-        rule = self.models[0].gateways['checklistCompleted']
-        choice = self.models[0].gateways['qualityPassed']
+        # act = self.models[0].activities['verify']
+        # para = self.models[0].gateways['parallelTest']
+        # merge = self.models[0].gateways['mergeTest']
+        # rule = self.models[0].gateways['checklistCompleted']
+        # choice = self.models[0].gateways['qualityPassed']
 
         # for i in range(10):
         #     print(para.get_gate(), merge.get_gate(),rule.get_gate(),choice.get_gate())
@@ -83,6 +84,7 @@ class SimulationManager:
 
     def _simulate_activity(self, item: QueueItem) -> bool:
         # TODO: Decide what does this return. (30min)
+        # TODO: Refactor this function. It's too big and complicated.
         activity = item.element
         duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
         timeout = item.leftover_timeout if item.leftover_timeout is not None else activity.timeout
@@ -102,7 +104,7 @@ class SimulationManager:
                         LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
                                 item.element_instance_id,
                                 'waiting_resource'))
-                    self.execution_queue.push(item.postpone(new_start))
+                    self._push_to_execution(item.postpone(new_start))
                     return True
                 else:
                     # resources were assigned but weren't enough to complete the activity. create a log and push back into queue with new duration when we finish this execution.
@@ -114,7 +116,7 @@ class SimulationManager:
                         LogItem(date, item.process_id, item.process_instance_id,
                                 item.element_id, item.element_instance_id,
                                 'pause_activity', resource=assigned))
-                    self.execution_queue.push(item.leftover(duration, (date - item.start).total_seconds(), data))
+                    self._push_to_execution(item.leftover(duration, (date - item.start).total_seconds(), data))
                     return True
 
         self.log_queue.push(
@@ -129,13 +131,13 @@ class SimulationManager:
                         item.element_id, item.element_instance_id,
                         'failed', resource=assigned))
             if item.attempt < activity.retries:
-                self.execution_queue.push(item.repeat(max_duration + 1))
+                self._push_to_execution(item.repeat(max_duration + 1))
         else:
             # Completed activity
 
             # Gets updated data from the activity, and updates it in the data manager
             output = None
-            if activity.process_data is not None:
+            if activity.data_output is not None:
                 output = activity.process_data(data)
                 for id, fields in output.items():
                     self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
@@ -150,22 +152,39 @@ class SimulationManager:
                             item.element_id, item.element_instance_id,
                             'end_activity', resource=assigned, data_output=output))
                 # add next to queue
-                element, delay = item.running_process.process_reference.get_next(source=activity.id)
+                element, gate, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:
-                    self.execution_queue.push(item.successor(element, duration=duration, delay=delay))
+                    self._push_to_execution(item.successor(element, duration=duration, delay=delay), current_gate=gate)
         return True
 
     def _simulate_gateway(self, item: QueueItem) -> bool:
-        # TODO: Missing merge logic. (1h)
-
         gateway = item.element
         data = self.dm.read_all(item.process_id, item.process_instance_id)
         gates = gateway.get_gate(input_data=data)
         for gate in gates:
-            element, delay = item.running_process.process_reference.get_next(source=gateway.id, gate=gate)
-            self.execution_queue.push(item.successor(element, delay=delay))
+            element, gt, delay = item.running_process.process_reference.get_next(source=gateway.id, gate=gate)
+            self._push_to_execution(item.successor(element, delay=delay), current_gate=gt)
         self.log_queue.push(LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, 'decision'))
         return True
+
+    def _push_to_execution(self, item: QueueItem, current_gate=None):
+        if isinstance(item.element, Gateway) and item.element.type == 'merge':
+            # Special case for merges
+            instance = self.pending_merges[item.process_id][item.process_instance_id]
+            if item.element_id not in instance:
+                # Create a record for this gateway if not exists
+                instance[item.element_id] = dict()
+            if item.element_instance_id not in instance[item.element_id]:
+                # Create a record for this gateway instance if not exists
+                instance[item.element_id][item.element_instance_id] = dict((gate, None) for gate in item.element.merge_inputs)
+            instance[item.element_id][item.element_instance_id][current_gate] = item.start
+            if all(date is not None for gate, date in instance[item.element_id][item.element_instance_id].items()):
+                # If all gates are fulfilled
+                item.start = max(list(instance[item.element_id][item.element_instance_id].values())) + timedelta(seconds=1)
+                self.execution_queue.push(item)
+                self.running_processes[item.process_id][item.process_instance_id].last_activities[item.element_id] += 1
+        else:
+            self.execution_queue.push(item)
 
     def _initialize_queue(self) -> None:
         self.execution_queue = PriorityQueue()
@@ -173,6 +192,8 @@ class SimulationManager:
             first_hour = self.start.replace(microsecond=0, second=0, minute=0)
             second_hour = first_hour+timedelta(hours=1)
             remaining_minutes = second_hour - self.start
+            self.pending_merges[model.id] = dict()
+            self.running_processes[model.id] = dict()
             self._initialize_hour(model, first_hour, remaining_minutes)
             hour = first_hour
             while hour + timedelta(hours=1) < self.end.replace(microsecond=0, second=0, minute=0):
@@ -188,9 +209,10 @@ class SimulationManager:
         for item in arrivals:
             if minutes is None or item <= minutes:
                 instance = model.new()
+                self.pending_merges[instance.process_id].update({instance.process_instance_id: dict()})
                 for data in instance.process_reference.data_objects:
                     self.dm.create_instance(data.id, instance.process_id, instance.process_instance_id)
-                self.running_processes.append(instance)
+                self.running_processes[instance.process_id][instance.process_instance_id] = instance
                 act = instance.process_reference.get_first_activity()[0]
                 self.execution_queue.push(
                     QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))

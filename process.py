@@ -17,7 +17,9 @@ class ProcessInstance:
     def get_element_instance_id(self, id: str) -> int:
         if id == "END":
             return 0
-        self.last_activities[id] += 1
+        # TODO: think of a better way to handle this exception for merge
+        if id not in self.process_reference.gateways or self.process_reference.gateways[id].type != 'merge':
+            self.last_activities[id] += 1
         return self.last_activities[id] - 1
 
     # Private methods
@@ -50,28 +52,28 @@ class Process:
         except KeyError:
             return 0
 
-    def get_first_activity(self) -> Union[Tuple[Activity, int], Tuple[Gateway, int]]:
+    def get_first_activity(self) -> Union[Tuple[Activity, None, int], Tuple[Gateway, str, int]]:
         return self.get_next('START')
 
     def new(self) -> ProcessInstance:
         Process.instance += 1
         return ProcessInstance(self.id, self.instance, self)
 
-    def get_next(self, source: str, gate: str = None) -> Union[Tuple[Activity, int], Tuple[Gateway, int], Tuple[None, None]]:
+    def get_next(self, source: str, gate: str = None) -> Union[Tuple[Activity, None, int], Tuple[Gateway, str, int], Tuple[None, None, None]]:
         # returns next activity or gateway id and the delay of the transition
         # For list structure
         for transition in self.transitions:
-            if transition.source == source and (gate is None or transition.gate == gate):
-                (act, delay) = transition.get_next()
+            if transition.source == source and (gate is None or transition.source_gate == gate):
+                (act, gate, delay) = transition.get_next()
                 if act in self.activities:
-                    return self.activities[act], delay
+                    return self.activities[act], None, delay
                 elif act in self.gateways:
-                    return self.gateways[act], delay
+                    return self.gateways[act], gate, delay
                 elif act == "END":
-                    return Activity.end(), delay
+                    return Activity.end(), None, delay
                 else:
                     raise ValueError(f"Activity or gateway {act} can't be found")
-        return None, None
+        return None, None, None
 
     # Private methods
     def __repr__(self):

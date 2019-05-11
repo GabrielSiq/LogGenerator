@@ -268,7 +268,8 @@ class ModelBuilder:
     def _parse_transition(self, transition_child: ElementTree) -> Transition:
         source = transition_child.get('source')
         destination = transition_child.get('destination')
-        gate = transition_child.get('gate')
+        sgate = transition_child.get('source_gate')
+        dgate = transition_child.get('destination_gate')
         duration_child = transition_child.find('Duration')
         distribution_child = transition_child.find('Duration/Distribution')
         if distribution_child is not None:
@@ -276,7 +277,7 @@ class ModelBuilder:
         else:
             distribution = int(duration_child.text) if duration_child is not None else 0
 
-        return Transition(source=source, destination=destination, gate=gate, distribution=distribution)
+        return Transition(source=source, destination=destination, sgate=sgate, dgate=dgate, distribution=distribution)
 
     def _parse_data(self, data_child: ElementTree) -> DataObject:
         id = data_child.get('id')
