@@ -51,6 +51,8 @@ class Activity:
                 setattr(self, key, Failure(value))
             elif key == 'priority':
                 setattr(self, key, PRIORITY_VALUES[value.lower()])
+            elif key == 'resources':
+                setattr(self, key, ResourceRequirement.from_list(value))
             else:
                 setattr(self, key, value)
 
