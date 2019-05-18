@@ -28,9 +28,6 @@ class ProcessInstance:
 
 
 class Process:
-    # Class variables
-    instance = 0
-
     # Initialization and instance variables
     def __init__(self, id: str, name: str, arrival_rate: dict, deadline: int, activities: Dict[str, Activity], gateways: List[Gateway], transitions: List[Transition], data_objects: Union[List[DataRequirement], List[dict]]) -> None:
         self.id = id
@@ -41,6 +38,7 @@ class Process:
         self.gateways = dict((gate.id, gate) for gate in gateways)
         self.transitions = transitions
         self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
+        self.instance = 0
 
     # Public methods
 
@@ -56,7 +54,7 @@ class Process:
         return self.get_next('START')
 
     def new(self) -> ProcessInstance:
-        Process.instance += 1
+        self.instance += 1
         return ProcessInstance(self.id, self.instance, self)
 
     def get_next(self, source: str, gate: str = None) -> Union[Tuple[Activity, None, int], Tuple[Gateway, str, int], Tuple[None, None, None]]:
@@ -70,7 +68,7 @@ class Process:
                 elif act in self.gateways:
                     return self.gateways[act], gate, delay
                 elif act == "END":
-                    return Activity.end(), None, delay
+                    return None, None, None
                 else:
                     raise ValueError(f"Activity or gateway {act} can't be found")
         return None, None, None
