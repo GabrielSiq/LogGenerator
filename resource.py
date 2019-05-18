@@ -12,8 +12,9 @@ class ResourceManager:
         self.human_resources = dict()
         self.physical_resources = dict()
         for resource in resources:
-            if isinstance(resource, HumanResource):
-                self.human_resources[resource.id] = resource
+            if isinstance(resource, list):
+                for hr in resource:
+                    self.human_resources[hr.id] = hr
             elif isinstance(resource, PhysicalResource):
                 self.physical_resources[resource.id] = resource
 

@@ -152,14 +152,16 @@ class ModelBuilder:
     def _parse_resource(self, resource_child: ElementTree) -> Resource:
         class_type = resource_child.get('type')
         id = resource_child.get('id')
-        qty = resource_child.find('Quantity').text
+        qty = int(resource_child.find('Quantity').text)
 
         if class_type == RESOURCE_TYPES['human']:
             org = resource_child.find('Organization').text
             dept = resource_child.find('Department').text
             role = resource_child.find('Role').text
             availability = self._parse_calendar(resource_child.find('Availability'))
-            res = HumanResource(id, org, dept, role, availability)
+            res = []
+            for i in range(qty):
+                res.append(HumanResource(id + "_" + str(i), org, dept, role, availability))
         elif class_type == RESOURCE_TYPES['physical']:
             type = resource_child.find('Type').text
             duration_child = resource_child.find('Duration')
