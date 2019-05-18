@@ -32,7 +32,7 @@ class PriorityQueue:
 
 
 class QueueItem:
-    def __init__(self, process: ProcessInstance, element_id: str, element_instance_id: int, start: datetime, element: Union[Activity, Gateway], duration: int = None, timeout: int = None, data: Dict[str, dict] = None, attempt: int = 0) -> None:
+    def __init__(self, process: ProcessInstance, element_id: str, element_instance_id: int, start: datetime, element: Union[Activity, Gateway], duration: int = None, timeout: int = None, data: Dict[str, dict] = None, attempt: int = 0, waiting: bool = False) -> None:
         self.process_id = process.process_id
         self.process_instance_id = process.process_instance_id
         self.element_id = element_id
@@ -45,6 +45,7 @@ class QueueItem:
         self.leftover_timeout = timeout
         self.data = data
         self.attempt = attempt
+        self.waiting = waiting
 
     def successor(self, element: Union[Activity, Gateway], duration: int = 0, delay: int = 0) -> QueueItem:
         return QueueItem(self.running_process, element.id, self.running_process.get_element_instance_id(element.id), self.start + timedelta(seconds=duration + delay), element)
@@ -58,9 +59,8 @@ class QueueItem:
         return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=actual_duration), self.element, duration=leftover_duration, timeout=leftover_timeout, data=data)
 
     def postpone(self, new_start: datetime) -> QueueItem:
-        # TODO: Decide if timeout is activity running time or if it's deadline after it starts. It possibly makes more sense to be deadline after it starts, so this logic will have to change a bit. postponing will reduce from leftover timeout if the activity has already started. change resources as well. Maybe we could record the original start time.
         return QueueItem(self.running_process, self.element_id, self.element_instance_id,
-                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout, data=self.data)
+                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout, data=self.data, waiting=True)
 
     def __lt__(self, other: QueueItem) -> bool:
         if self.start < other.start:

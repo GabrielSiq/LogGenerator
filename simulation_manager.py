@@ -1,4 +1,5 @@
 import copy
+import time
 
 from activity import Activity
 from config import DAYS
@@ -30,10 +31,12 @@ class SimulationManager:
     # Public methods
     def main(self):
         #TODO: Remove unnecessary prints. (15 min)
+        parsing = time.time()
         model = ModelBuilder()
         self.models, self.rm, self.dm = model.build_all()
+        print('Parsing time: ' + str(time.time() - parsing))
 
-        req = model.activities['quality'].resources[0]
+        #req = model.activities['quality'].resources[0]
 
         # print(rm.get_available(req, datetime.now() - timedelta(hours=3), datetime.now() - timedelta(hours=2)))
         # log_list = [
@@ -46,8 +49,10 @@ class SimulationManager:
         #
         # LogWriter.write(log_list, name='banana')
 
-        print("\nTesting queue:")
+        #print("\nTesting queue:")
+        initialization = time.time()
         self._initialize_queue()
+        print('Queue initialization time: ' + str(time.time() - initialization))
         # while not self.execution_queue.is_empty():
         #     item = self.execution_queue.pop()
         #     print(item.start)
@@ -63,27 +68,30 @@ class SimulationManager:
         # for i in range(10):
         #     print(para.get_gate(), merge.get_gate(),rule.get_gate(),choice.get_gate())
 
+        simulation = time.time()
         while not self.execution_queue.is_empty():
             current = self.execution_queue.pop()
             if current.start > self.end:
                 break
             self._simulate(current)
+        print('Simulation time: ' + str(time.time() - simulation))
 
+        writing = time.time()
         LogWriter.write(self.log_queue)
+        print('Log writing time: ' + str(time.time() - writing))
         while not self.execution_queue.is_empty():
             item = self.execution_queue.pop()
             if item.start < self.end:
                 print('unused items in queue')
 
     # Private methods
-    def _simulate(self, item: QueueItem) -> bool:
+    def _simulate(self, item: QueueItem) -> None:
         if isinstance(item.element, Activity):
             return self._simulate_activity(item)
         elif isinstance(item.element, Gateway):
             return self._simulate_gateway(item)
 
-    def _simulate_activity(self, item: QueueItem) -> bool:
-        # TODO: Decide what does this return. (30min)
+    def _simulate_activity(self, item: QueueItem) -> None:
         # TODO: Refactor this function. It's too big and complicated.
         activity = item.element
         duration = item.leftover_duration if item.leftover_duration is not None else activity.generate_duration()
@@ -100,12 +108,13 @@ class SimulationManager:
                 if not assigned:
                     # When there are no resources available. Register the occurence and try again when next resource is available.
                     new_start = self.rm.when_available(activity.resources, item.start, item.start + timedelta(seconds=max_duration))
-                    self.log_queue.push(
-                        LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
-                                item.element_instance_id,
-                                'waiting_resource'))
+                    if not item.waiting:
+                        self.log_queue.push(
+                            LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
+                                    item.element_instance_id,
+                                    'waiting_resource'))
                     self._push_to_execution(item.postpone(new_start))
-                    return True
+                    return
                 else:
                     # resources were assigned but weren't enough to complete the activity. create a log and push back into queue with new duration when we finish this execution.
                     self.log_queue.push(
@@ -117,7 +126,7 @@ class SimulationManager:
                                 item.element_id, item.element_instance_id,
                                 'pause_activity', resource=assigned))
                     self._push_to_execution(item.leftover(duration, (date - item.start).total_seconds(), data))
-                    return True
+                    return
 
         self.log_queue.push(
             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
@@ -155,17 +164,15 @@ class SimulationManager:
                 element, gate, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:
                     self._push_to_execution(item.successor(element, duration=duration, delay=delay), current_gate=gate)
-        return True
 
-    def _simulate_gateway(self, item: QueueItem) -> bool:
+    def _simulate_gateway(self, item: QueueItem) -> None:
         gateway = item.element
         data = self.dm.read_all(item.process_id, item.process_instance_id)
         gates = gateway.get_gate(input_data=data)
         for gate in gates:
             element, gt, delay = item.running_process.process_reference.get_next(source=gateway.id, gate=gate)
             self._push_to_execution(item.successor(element, delay=delay), current_gate=gt)
-        self.log_queue.push(LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, 'decision'))
-        return True
+        # self.log_queue.push(LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, 'decision'))
 
     def _push_to_execution(self, item: QueueItem, current_gate=None):
         if isinstance(item.element, Gateway) and item.element.type == 'merge':
@@ -194,20 +201,20 @@ class SimulationManager:
             remaining_minutes = second_hour - self.start
             self.pending_merges[model.id] = dict()
             self.running_processes[model.id] = dict()
-            self._initialize_hour(model, first_hour, remaining_minutes)
+            self._initialize_hour(model, first_hour, first_hour=remaining_minutes.total_seconds())
             hour = first_hour
             while hour + timedelta(hours=1) < self.end.replace(microsecond=0, second=0, minute=0):
                 hour += timedelta(hours=1)
                 self._initialize_hour(model, hour)
             last_hour = hour + timedelta(hours=1)
             remaining_minutes = self.end - last_hour
-            self._initialize_hour(model, last_hour, remaining_minutes)
+            self._initialize_hour(model, last_hour, last_hour=remaining_minutes.total_seconds())
 
-    def _initialize_hour(self, model: Process, time: datetime, minutes: timedelta = None) -> None:
+    def _initialize_hour(self, model: Process, time: datetime, first_hour: float = None, last_hour: float = None) -> None:
         arrival_rate = model.get_arrival_rate(DAYS[time.weekday()], time.hour)
         arrivals = sorted([timedelta(minutes=randint(0, 59)) for i in range(arrival_rate)])
         for item in arrivals:
-            if minutes is None or item <= minutes:
+            if (first_hour is None and last_hour is None) or (first_hour is not None and item.total_seconds() >= (3600 - first_hour)) or (last_hour is not None and item.total_seconds() <= last_hour):
                 instance = model.new()
                 self.pending_merges[instance.process_id].update({instance.process_instance_id: dict()})
                 for data in instance.process_reference.data_objects:
@@ -218,8 +225,12 @@ class SimulationManager:
                     QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))
 
 
-sim = SimulationManager(start=datetime.now(), end=datetime.now() + timedelta(days=30))
+start_time = time.time()
+sim = SimulationManager(start=datetime.now(), end=datetime.now() + timedelta(days=1))
 sim.main()
+elapsed_time = time.time() - start_time
+
+print('Total Time: ' + str(elapsed_time))
 
 
 
