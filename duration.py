@@ -16,17 +16,19 @@ class Duration:
     # Public methods
     def generate(self) -> Optional[int]:
         if self.type == 'normal':
-            return int(random.normal(loc=self.parameters['mean'], scale=self.parameters['variance']))
+            dur = int(random.normal(loc=self.parameters['mean'], scale=self.parameters['std']))
         elif self.type == 'uniform':
-            return int(random.uniform(low=self.parameters['low'], high=self.parameters['high']))
+            dur = int(random.uniform(low=self.parameters['low'], high=self.parameters['high']))
         elif self.type == 'triangular':
-            return int(random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right']))
+            dur = int(random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right']))
         elif self.type == 'beta':
-            return int(random.beta(a=self.parameters['a'], b=self.parameters['b']))
+            dur = int(random.beta(a=self.parameters['a'], b=self.parameters['b']))
         elif self.type == 'const':
-            return int(self.parameters['value'])
+            dur = int(self.parameters['value'])
         else:
-            return None
+            dur = None
+
+        return max(0, dur) if dur is not None else None
 
     # Private Methods
     def __repr__(self):
