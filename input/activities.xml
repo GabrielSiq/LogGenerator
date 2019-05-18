@@ -1,109 +1,109 @@
 <Activities>
-	<Activity id="application">
-		<Name>Start Application</Name>
+<!--    Message Triage-->
+	<Activity id="read">
+		<Name>Read Ticket</Name>
 		<Duration>
-			<Distribution type="Normal" mean="600" variance="120" />
+			<Distribution type="Normal" mean="300" std="180" />
 		</Duration>
 		<DataOutput>
-			<DataObject id="app"/>
+			<DataObject id="ticket"/>
 		</DataOutput>
-		<Timeout>432000</Timeout>
-	</Activity>
-	<Activity id="verify">
-		<Name>Verify Checklist</Name>
-		<Duration>
-			<Distribution type="Normal" mean="600" variance="360" />
-		</Duration>
-		<DataInput>
-			<DataObject id="app"/>
-		</DataInput>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Timeout>432000</Timeout>
-	</Activity>
-	<Activity id="improvement">
-		<Name>Home Improvement</Name>
-		<Duration>
-			<Distribution type="Normal" mean="432000" variance="86400" />
-		</Duration>
-		<Timeout>8642000</Timeout>
-	</Activity>
-	<Activity id="inspection">
-		<Name>Execute Inspection</Name>
-		<Duration>
-			<Distribution type="Normal" mean="7200" variance="3600" />
-		</Duration>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Resources>
-			<Resource class_type="human" org="Inspect, Inc." dept="Inspectors" role="Home Inspector">1</Resource>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
 		</Resources>
-		<FailureRate retries="3">0.05</FailureRate>
-		<Timeout>432000</Timeout>
-		<Priority>Normal</Priority>
 	</Activity>
-	<Activity id="quality">
-		<Name>Check Quality</Name>
+    <Activity id="send_to_eng">
+		<Name>Send to Engineering</Name>
 		<Duration>
-			<Distribution type="Normal" mean="3600" variance="120" />
+			<Distribution type="Normal" mean="600" std="180" />
 		</Duration>
-		<DataInput>
-			<DataObject id="app"/>
-		</DataInput>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Resources>
-			<Resource class_type="human" org="Airbnb, Inc." dept="Quality Control" role="Quality Check">1</Resource>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
 		</Resources>
-		<Timeout>432000</Timeout>
-		<Priority>Normal</Priority>
 	</Activity>
-	<Activity id="fixQuality">
-		<Name>Fix Quality Issues</Name>
+    <Activity id="open_trust">
+		<Name>Open Trust Case</Name>
 		<Duration>
-			<Distribution type="Normal" mean="432000" variance="86400" />
+			<Distribution type="Normal" mean="600" std="180" />
 		</Duration>
-		<DataInput>
-			<DataObject id="app"/>
-		</DataInput>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Timeout>8642000</Timeout>
-	</Activity>
-	<Activity id="photo">
-		<Name>Execute Photography</Name>
-		<Duration>
-			<Distribution type="Normal" mean="7200" variance="3600" />
-		</Duration>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Resources>
-			<Resource class_type="human" org="Inspect, Inc." dept="Inspectors" role="Home Inspector">1</Resource>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
 		</Resources>
-		<FailureRate retries="3">0.05</FailureRate>
-		<Timeout>432000</Timeout>
-		<Priority>High</Priority>
 	</Activity>
-	<Activity id="review">
-		<Name>Review Photos</Name>
+    <Activity id="check_faq">
+		<Name>Check FAQ</Name>
 		<Duration>
-			<Distribution type="Normal" mean="3600" variance="1200" />
+			<Distribution type="Normal" mean="900" std="180" />
 		</Duration>
-		<DataInput>
-			<DataObject id="app"/>
-		</DataInput>
-		<DataOutput>
-			<DataObject id="app"/>
-		</DataOutput>
-		<Resources>
-			<Resource class_type="human" org="Airbnb, Inc." dept="Quality Control" role="Quality Check">1</Resource>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
 		</Resources>
-		<Timeout>432000</Timeout>
-		<Priority>Normal</Priority>
+	</Activity>
+    <Activity id="open_support">
+		<Name>Open Support Case</Name>
+		<Duration>
+			<Distribution type="Normal" mean="600" std="180" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+    <Activity id="send_response">
+		<Name>Send Response</Name>
+		<Duration>
+			<Distribution type="Normal" mean="300" std="180" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+<!--    support case-->
+    <Activity id="close">
+		<Name>Close Case</Name>
+		<Duration>
+			<Distribution type="Normal" mean="300" std="180" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+    <Activity id="payment">
+		<Name>Order Payment</Name>
+		<Duration>
+			<Distribution type="Normal" mean="900" std="180" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+	<Activity id="send_to_host">
+		<Name>Send to Host</Name>
+		<Duration>
+			<Distribution type="Normal" mean="300" std="180" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+<!--    Trust Case-->
+    <Activity id="rebook">
+		<Name>Priority Rebook</Name>
+		<Duration>
+			<Distribution type="Normal" mean="1800" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+		</Resources>
+        <Priority>High</Priority>
+	</Activity>
+    <Activity id="research">
+		<Name>Case Research</Name>
+		<Duration>
+			<Distribution type="Normal" mean="1800" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+		</Resources>
+        <Priority>High</Priority>
 	</Activity>
 </Activities>

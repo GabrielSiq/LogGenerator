@@ -1,6 +1,11 @@
-def checklistCompleted(input):
-    app = input['app']
-    if app['VerifiedChecklist'] is True:
+def bug(input):
+    ticket = input['ticket']
+    if ticket['Class'] == 'bug':
         return 'yes'
     else:
         return 'no'
+
+
+def type(input):
+    ticket = input['ticket']
+    return ticket['Class']

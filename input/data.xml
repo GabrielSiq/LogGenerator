@@ -1,15 +1,8 @@
 <DataObjects>
-	<DataObject id="app" type="form">
-		<Name>Application Report</Name>
+	<DataObject id="ticket" type="form">
+		<Name>Ticket</Name>
 		<Fields>
-			<Field name="ApplicationInfo"></Field>
-			<Field name="HostChecklist"></Field>
-			<Field name="VerifiedChecklist"></Field>
-			<Field name="QualityChecklist"></Field>
-			<Field name="InspectionReport"></Field>
-			<Field name="FixReport"></Field>
-			<Field name="PropertyPhotos"></Field>
-			<Field name="PhotoApproval"></Field>
+			<Field name="Class"></Field>
 		</Fields>
 	</DataObject>
 </DataObjects>

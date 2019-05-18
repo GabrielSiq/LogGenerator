@@ -1,248 +1,451 @@
 <Models>
-	<Model id='plus'>
-		<Name>Listing Application</Name>
+	<Model id='triage'>
+		<Name>Ticket Triage</Name>
 		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
-				<TimeBlock start="9" end="17">0</TimeBlock>
+				<TimeBlock start="0" end="6">15</TimeBlock>
+				<TimeBlock start="6" end="18">40</TimeBlock>
+				<TimeBlock start="18" end="24">20</TimeBlock>
 			</Mon>
 			<Tue>
-				<TimeBlock start="9" end="17">0</TimeBlock>
+				<TimeBlock start="0" end="6">15</TimeBlock>
+				<TimeBlock start="6" end="18">40</TimeBlock>
+				<TimeBlock start="18" end="24">20</TimeBlock>
 			</Tue>
 			<Wed>
-				<TimeBlock start="9" end="17">1</TimeBlock>
+				<TimeBlock start="0" end="6">15</TimeBlock>
+				<TimeBlock start="6" end="18">40</TimeBlock>
+				<TimeBlock start="18" end="24">20</TimeBlock>
 			</Wed>
 			<Thu>
-				<TimeBlock start="9" end="17">0</TimeBlock>
+				<TimeBlock start="0" end="6">15</TimeBlock>
+				<TimeBlock start="6" end="18">40</TimeBlock>
+				<TimeBlock start="18" end="24">20</TimeBlock>
 			</Thu>
 			<Fri>
-				<TimeBlock start="9" end="17">0</TimeBlock>
+				<TimeBlock start="0" end="6">15</TimeBlock>
+				<TimeBlock start="6" end="18">40</TimeBlock>
+				<TimeBlock start="18" end="24">20</TimeBlock>
 			</Fri>
+			<Sat>
+				<TimeBlock start="0" end="6">20</TimeBlock>
+				<TimeBlock start="6" end="18">50</TimeBlock>
+				<TimeBlock start="18" end="24">30</TimeBlock>
+			</Sat>
+			<Sun>
+				<TimeBlock start="0" end="6">20</TimeBlock>
+				<TimeBlock start="6" end="18">50</TimeBlock>
+				<TimeBlock start="18" end="24">30</TimeBlock>
+			</Sun>
 		</ArrivalRate>
-		<Deadline>2592000</Deadline>
 		<!-- How do we indicate which activities, upon failure, will cause the instance to fail? -->
 		<Activities>
-			<Activity id="application">
+			<Activity id="read">
 				<DataOutput>
-					<DataObject id="app" type="form">
+					<DataObject id="ticket">
 						<Fields>
-							<!-- Also need to specify the procedures for data generation! -->
-							<Field name="ApplicationInfo"/>
+							<Field name="Class"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
 			</Activity>
-			<Activity id="verify">
-				<DataInput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="ApplicationInfo"/>
-							<Field name="HostChecklist"/>
-						</Fields>
-					</DataObject>
-				</DataInput>
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="VerifiedChecklist"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
-			<Activity id="inspection">
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="InspectionReport"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
-			<Activity id="quality">
-				<DataInput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="ApplicationInfo"/>
-							<Field name="HostChecklist"/>
-							<Field name="QualityChecklist"/>
-							<Field name="InspectionReport"/>
-						</Fields>
-					</DataObject>
-				</DataInput>
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="FixReport"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
-			<Activity id="fixQuality">
-				<DataInput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="FixReport"/>
-						</Fields>
-					</DataObject>
-				</DataInput>
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="FixReport"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
-			<Activity id="photo">
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="PropertyPhotos"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
-			<Activity id="review">
-				<DataInput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="PropertyPhotos"/>
-						</Fields>
-					</DataObject>
-				</DataInput>
-				<DataOutput>
-					<DataObject id="app" type="form">
-						<Fields>
-							<Field name="PhotoApproval"/>
-						</Fields>
-					</DataObject>
-				</DataOutput>
-			</Activity>
+			<Activity id="send_to_eng"/>
+			<Activity id="open_trust"/>
+			<Activity id="check_faq"/>
+			<Activity id="open_support"/>
+			<Activity id="send_response"/>
 		</Activities>
 		<Gateways>
-			<Gateway id="checklistCompleted">
-				<Name>Checklist Completed?</Name>
+			<Gateway id="bug">
+				<Name>Is it a bug?</Name>
 				<Type>Choice</Type>
 				<Rule>
 					<Gate id="yes"/>
 					<Gate id="no"/>
 				</Rule>
 			</Gateway>
-			<Gateway id="parallelTest">
-				<Name>Parallel Test</Name>
-				<Type>Parallel</Type>
-				<Gates>
-					<Gate id="a"/>
-					<Gate id="b"/>
-				</Gates>
+			<Gateway id="type">
+				<Name>What is the type?</Name>
+				<Type>Choice</Type>
+				<Rule>
+					<Gate id="support"/>
+					<Gate id="trust"/>
+				</Rule>
 			</Gateway>
-			<Gateway id="mergeTest">
-				<Name>Merge Test</Name>
-				<Type>Merge</Type>
-				<Gates>
-					<Gate id="a"/>
-					<Gate id="b"/>
-					<Gate id="c"/>
-				</Gates>
-			</Gateway>
-			<Gateway id="qualityPassed">
-				<Name>Quality Passed?</Name>
+			<Gateway id="faq">
+				<Name>Is it in FAQ?</Name>
 				<Type>Choice</Type>
 				<Distribution>
-					<Gate id='yes'>0.8</Gate>
-					<Gate id='no'>0.2</Gate>
+					<Gate id='yes'>0.4</Gate>
+					<Gate id='no'>0.6</Gate>
 				</Distribution>
-				<!-- Pending, coming up with format for rules-->
-				<Rule></Rule>
-			</Gateway>
-			<Gateway id="photosApproved">
-				<Name>Photos Approved?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.9</Gate>
-					<Gate id='no'>0.1</Gate>
-				</Distribution>
-				<!-- Pending, coming up with format for rules-->
-				<Rule></Rule>
 			</Gateway>
 		</Gateways>
 		<Transitions>
-			<Transition source="START" destination="application">
+			<Transition source="START" destination="read">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="application" destination="verify">
+			<Transition source="read" destination="bug">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="verify" destination="checklistCompleted">
+			<Transition source="bug" source_gate="yes" destination="send_to_eng">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="checklistCompleted" source_gate="no" destination="improvement">
+			<Transition source="bug" source_gate="no" destination="type">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="improvement" destination="verify">
+			<Transition source="type" source_gate="support" destination="check_faq">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="checklistCompleted" source_gate="yes" destination="inspection">
+			<Transition source="type" source_gate="trust" destination="open_trust">
 				<Duration>
-					<Distribution type="Normal" mean="432000" variance="86400" />
+					<Distribution type="Normal" mean="432000" std="86400" />
 				</Duration>
 			</Transition>
-			<Transition source="inspection" destination="quality">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="quality" destination="qualityPassed">
+			<Transition source="send_to_eng" destination="END">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="qualityPassed" source_gate="no" destination="fixQuality">
+			<Transition source="open_trust" destination="END">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="fixQuality" destination="quality">
+			<Transition source="check_faq" destination="faq">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="qualityPassed" source_gate="yes" destination="photo">
-				<Duration>
-					<Distribution type="Normal" mean="432000" variance="86400" />
-				</Duration>
-			</Transition>
-			<Transition source="photo" destination="review">
+			<Transition source="faq" source_gate="yes" destination="send_response">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="review" destination="photosApproved">
+			<Transition source="faq" source_gate="no" destination="open_support">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
-			<Transition source="photosApproved" source_gate="no" destination="photo">
+			<Transition source="send_response" destination="END">
 				<Duration>
-					<Distribution type="Normal" mean="432000" variance="86400" />
+					<Distribution type="Normal" mean="432000" std="86400" />
 				</Duration>
 			</Transition>
-			<Transition source="photosApproved" source_gate="yes" destination="END">
+			<Transition source="open_support" destination="END">
 				<Duration>
 					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 		</Transitions>
+		<Deadline>50000000</Deadline>
+	</Model>
+	<Model id="support">
+		<Name>Support Case</Name>
+		<!-- per hour -->
+		<ArrivalRate>
+			<Mon>
+				<TimeBlock start="0" end="6">9</TimeBlock>
+				<TimeBlock start="6" end="18">24</TimeBlock>
+				<TimeBlock start="18" end="24">12</TimeBlock>
+			</Mon>
+			<Tue>
+				<TimeBlock start="0" end="6">9</TimeBlock>
+				<TimeBlock start="6" end="18">24</TimeBlock>
+				<TimeBlock start="18" end="24">12</TimeBlock>
+			</Tue>
+			<Wed>
+				<TimeBlock start="0" end="6">9</TimeBlock>
+				<TimeBlock start="6" end="18">24</TimeBlock>
+				<TimeBlock start="18" end="24">12</TimeBlock>
+			</Wed>
+			<Thu>
+				<TimeBlock start="0" end="6">9</TimeBlock>
+				<TimeBlock start="6" end="18">24</TimeBlock>
+				<TimeBlock start="18" end="24">12</TimeBlock>
+			</Thu>
+			<Fri>
+				<TimeBlock start="0" end="6">9</TimeBlock>
+				<TimeBlock start="6" end="18">24</TimeBlock>
+				<TimeBlock start="18" end="24">12</TimeBlock>
+			</Fri>
+			<Sat>
+				<TimeBlock start="0" end="6">12</TimeBlock>
+				<TimeBlock start="6" end="18">30</TimeBlock>
+				<TimeBlock start="18" end="24">18</TimeBlock>
+			</Sat>
+			<Sun>
+				<TimeBlock start="0" end="6">12</TimeBlock>
+				<TimeBlock start="6" end="18">30</TimeBlock>
+				<TimeBlock start="18" end="24">18</TimeBlock>
+			</Sun>
+		</ArrivalRate>
+		<Activities>
+			<Activity id="read"/>
+			<Activity id="payment"/>
+			<Activity id="close"/>
+			<Activity id="send_to_host"/>
+			<Activity id="send_response"/>
+		</Activities>
+		<Gateways>
+			<Gateway id="financial">
+				<Name>Is it a financial matter?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.3</Gate>
+					<Gate id='no'>0.7</Gate>
+				</Distribution>
+			</Gateway>
+			<Gateway id="merit">
+				<Name>Does the claim have merit?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.8</Gate>
+					<Gate id='no'>0.2</Gate>
+				</Distribution>
+			</Gateway>
+			<Gateway id="hostFault">
+				<Name>Is the host at fault?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.5</Gate>
+					<Gate id='no'>0.5</Gate>
+				</Distribution>
+			</Gateway>
+			<Gateway id="resolved">
+				<Name>Is the matter resolved?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.8</Gate>
+					<Gate id='no'>0.2</Gate>
+				</Distribution>
+			</Gateway>
+		</Gateways>
+		<Transitions>
+			<Transition source="START" destination="read">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="read" destination="financial">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="financial" source_gate="yes" destination="merit">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="financial" source_gate="no" destination="send_response">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="merit" source_gate="yes" destination="payment">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="merit" source_gate="no" destination="send_response">
+				<Duration>
+					<Distribution type="Normal" mean="432000" std="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="payment" destination="hostFault">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="send_response" destination="resolved">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="hostFault" source_gate="yes" destination="send_to_host">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="hostFault" source_gate="no" destination="close">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="resolved" source_gate="yes" destination="close">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="resolved" source_gate="no" destination="send_response">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="close" destination="END">
+				<Duration>
+					<Distribution type="Normal" mean="432000" std="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="send_to_host" destination="END">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+		</Transitions>
+		<Deadline>50000000</Deadline>
+	</Model>
+	<Model id="trust">
+		<Name>Trust Case</Name>
+		<!-- per hour -->
+		<ArrivalRate>
+			<Mon>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
+			</Mon>
+			<Tue>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
+			</Tue>
+			<Wed>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
+			</Wed>
+			<Thu>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
+			</Thu>
+			<Fri>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
+			</Fri>
+			<Sat>
+				<TimeBlock start="0" end="6">4</TimeBlock>
+				<TimeBlock start="6" end="18">10</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Sat>
+			<Sun>
+				<TimeBlock start="0" end="6">4</TimeBlock>
+				<TimeBlock start="6" end="18">10</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Sun>
+		</ArrivalRate>
+		<Activities>
+			<Activity id="read">
+				<Resources>
+					<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+				</Resources>
+			</Activity>
+			<Activity id="rebook"/>
+			<Activity id="close"/>
+			<Activity id="research"/>
+			<Activity id="send_response"/>
+		</Activities>
+		<Gateways>
+			<Gateway id="currentTrip">
+				<Name>Incident in current trip?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.7</Gate>
+					<Gate id='no'>0.3</Gate>
+				</Distribution>
+			</Gateway>
+			<Gateway id="potentialDanger">
+				<Name>Does the guest feel unsafe?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.3</Gate>
+					<Gate id='no'>0.7</Gate>
+				</Distribution>
+			</Gateway>
+			<Gateway id="resolved">
+				<Name>Is the matter resolved?</Name>
+				<Type>Choice</Type>
+				<Distribution>
+					<Gate id='yes'>0.8</Gate>
+					<Gate id='no'>0.2</Gate>
+				</Distribution>
+			</Gateway>
+		</Gateways>
+		<Transitions>
+			<Transition source="START" destination="read">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="read" destination="currentTrip">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="currentTrip" source_gate="yes" destination="potentialDanger">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="currentTrip" source_gate="no" destination="research">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="potentialDanger" source_gate="yes" destination="rebook">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="potentialDanger" source_gate="no" destination="research">
+				<Duration>
+					<Distribution type="Normal" mean="432000" std="86400" />
+				</Duration>
+			</Transition>
+			<Transition source="rebook" destination="close">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="research" destination="send_response">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="send_response" destination="resolved">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="resolved" source_gate="yes" destination="close">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="resolved" source_gate="no" destination="send_response">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="close" destination="END">
+				<Duration>
+					<Distribution type="Normal" mean="432000" std="86400" />
+				</Duration>
+			</Transition>
+		</Transitions>
+		<Deadline>50000000</Deadline>
 	</Model>
 <!--	<Model id='plus'>-->
 <!--		<Name>Listing Application</Name>-->
