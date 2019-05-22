@@ -26,18 +26,18 @@ class ModelBuilder:
         self.activities = dict((act.id, act) for act in activity_list)
 
     # Public methods
-    def build_all(self) -> Tuple[List[Process], ResourceManager, DataManager]:
+    def build_all(self, resource_limit=None) -> Tuple[List[Process], ResourceManager, DataManager]:
         models = self.create_process_model()
         process_list = [x.id for x in models]
-        rm = ResourceManager(self.create_resources())
+        rm = ResourceManager(self.create_resources(resource_limit=resource_limit))
         dm = DataManager(self.create_data(), process_list=process_list)
         return models, rm, dm
 
     def create_activities(self) -> List[Activity]:
         return self._create_from_file(self.activities_file, FILE_ROOT['activities'], self._parse_activity)
 
-    def create_resources(self) -> List[Resource]:
-        return self._create_from_file(self.resources_file, FILE_ROOT['resources'], self._parse_resource)
+    def create_resources(self, resource_limit=None) -> List[Resource]:
+        return self._create_from_file(self.resources_file, FILE_ROOT['resources'], self._parse_resource, extra=resource_limit)
 
     def create_data(self) -> List[DataObject]:
         return self._create_from_file(self.data_file, FILE_ROOT['data'], self._parse_data)
@@ -47,12 +47,16 @@ class ModelBuilder:
 
     # Private methods
     @staticmethod
-    def _create_from_file(file_name: str, tag_name: str, parser: Callable) -> list:
+    def _create_from_file(file_name: str, tag_name: str, parser: Callable, extra=None) -> list:
         container = []
         root = ElementTree.parse(file_name).getroot()
         for child in root:
             if child.tag == tag_name:
-                container.append(parser(child))
+                if extra is not None:
+                    container.append(parser(child, resource_limit=extra))
+                else:
+                    container.append(parser(child))
+
         return container
 
     def _parse_activity(self, activity_child: ElementTree) -> Activity:
@@ -149,10 +153,13 @@ class ModelBuilder:
 
         return fields
 
-    def _parse_resource(self, resource_child: ElementTree) -> Resource:
+    def _parse_resource(self, resource_child: ElementTree, resource_limit=None) -> Resource:
         class_type = resource_child.get('type')
         id = resource_child.get('id')
-        qty = int(resource_child.find('Quantity').text)
+        if resource_limit is not None and id in resource_limit:
+            qty = int(resource_limit[id])
+        else:
+            qty = int(resource_child.find('Quantity').text)
 
         if class_type == RESOURCE_TYPES['human']:
             org = resource_child.find('Organization').text

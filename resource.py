@@ -4,6 +4,7 @@ from heapq import heappush, heappop
 from typing import List, Union, Tuple, Dict, Optional
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
+from functools import lru_cache
 
 
 class ResourceManager:
@@ -99,10 +100,19 @@ class ResourceManager:
 
     def _search_human(self, org: str, dept: str, role: str, available: bool = None, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
         result = []
-        for id, resource in self.human_resources.items():
-            if (role is None or resource.role == role) and (dept is None or resource.dept == dept) and org is not None and resource.org == org and (available is None or resource.is_available(start_time) == available):
+        for resource in self._search_all_human(org, dept, role):
+            if available is None or resource.is_available(start_time) == available:
                 result.append(resource)
         return sorted(result, key=lambda x: x.available_until(start_time, end_time), reverse=True)
+
+    @lru_cache(maxsize=128)
+    def _search_all_human(self, org: str, dept: str, role: str):
+        result = []
+        for id, resource in self.human_resources.items():
+            if (role is None or resource.role == role) and (
+                    dept is None or resource.dept == dept) and org is not None and resource.org == org:
+                result.append(resource)
+        return result
 
 
 class ResourceRequirement:
@@ -194,9 +204,9 @@ class HumanResource(Resource):
 
     def when_available(self, start: datetime) -> datetime:
         if self.busy_until > start:
-            start = self.busy_until
-            if self.is_available(start):
-                return start
+            current = self.busy_until + timedelta(seconds=1)
+            if self.is_available(current):
+                return current
         current = start.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
         while not self.is_available(current):
             current += timedelta(hours=1)

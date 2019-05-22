@@ -63,7 +63,7 @@ class GateRule:
         if gate in self.gates:
             return gate
         else:
-            raise RuntimeError("Gate provided by input rule function doesn't exist.")
+            raise RuntimeError(f"Gate {gate} provided by input rule function doesn't exist.")
 
     # Private methods
     def __repr__(self):

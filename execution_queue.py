@@ -51,26 +51,36 @@ class QueueItem:
         return QueueItem(self.running_process, element.id, self.running_process.get_element_instance_id(element.id), self.start + timedelta(seconds=duration + delay), element)
 
     def repeat(self, duration: int) -> QueueItem:
-        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=duration), self.element, attempt=self.attempt + 1)
+        self.start = self.start + timedelta(seconds=duration)
+        self.attempt = self.attempt + 1
+        return self
 
     def leftover(self, original_duration: int, actual_duration: int, data: Dict[str, dict]) -> QueueItem:
-        leftover_duration = self.leftover_duration - actual_duration if self.leftover_duration is not None else original_duration - actual_duration
-        leftover_timeout = self.leftover_timeout - actual_duration if self.leftover_timeout is not None else self.element.timeout - actual_duration
-        return QueueItem(self.running_process, self.element_id, self.element_instance_id, self.start + timedelta(seconds=actual_duration), self.element, duration=leftover_duration, timeout=leftover_timeout, data=data)
+        self.leftover_duration = self.leftover_duration - actual_duration if self.leftover_duration is not None else original_duration - actual_duration
+        self.leftover_timeout = self.leftover_timeout - actual_duration if self.leftover_timeout is not None else self.element.timeout - actual_duration
+        self.data = data
+        self.start = self.start + timedelta(seconds=actual_duration)
+        return self
 
     def postpone(self, new_start: datetime) -> QueueItem:
-        return QueueItem(self.running_process, self.element_id, self.element_instance_id,
-                         new_start, self.element, duration=self.leftover_duration, timeout=self.leftover_timeout, data=self.data, waiting=True)
+        self.start = new_start
+        self.waiting = True
+        return self
 
     def __lt__(self, other: QueueItem) -> bool:
         if self.start < other.start:
+            # If the start date is smaller, then it's automatically smaller
             return True
         elif self.start == other.start:
-            if (isinstance(self.element, Activity) and isinstance(other.element, Gateway)) or self.priority < other.priority:
+            # If they have same start date, we check priority and process instance id
+            if self.priority < other.priority:
                 return True
+            elif self.priority == other.priority and self.process_id == other.process_id and self.process_instance_id > other.process_instance_id:
+                return True
+            else:
+                return False
         else:
             return False
-        return self.start < other.start or (self.start == other.start and self.priority < other.priority)
 
     # Private Methods
     def __repr__(self):

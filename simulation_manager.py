@@ -26,15 +26,12 @@ class SimulationManager:
         self.log_queue = PriorityQueue()
         self.pending_merges = dict()
         self.running_processes = dict()
-        print(str(start), str(end))
 
     # Public methods
-    def main(self):
-        #TODO: Remove unnecessary prints. (15 min)
-        parsing = time.time()
+    def main(self, name, resource_limit):
+        # TODO: Remove unnecessary prints. (15 min)
         model = ModelBuilder()
-        self.models, self.rm, self.dm = model.build_all()
-        print('Parsing time: ' + str(time.time() - parsing))
+        self.models, self.rm, self.dm = model.build_all(resource_limit=resource_limit)
 
         #req = model.activities['quality'].resources[0]
 
@@ -50,9 +47,7 @@ class SimulationManager:
         # LogWriter.write(log_list, name='banana')
 
         #print("\nTesting queue:")
-        initialization = time.time()
         self._initialize_queue()
-        print('Queue initialization time: ' + str(time.time() - initialization))
         # while not self.execution_queue.is_empty():
         #     item = self.execution_queue.pop()
         #     print(item.start)
@@ -76,9 +71,7 @@ class SimulationManager:
             self._simulate(current)
         print('Simulation time: ' + str(time.time() - simulation))
 
-        writing = time.time()
-        LogWriter.write(self.log_queue)
-        print('Log writing time: ' + str(time.time() - writing))
+        LogWriter.write(self.log_queue, name=name)
         while not self.execution_queue.is_empty():
             item = self.execution_queue.pop()
             if item.start < self.end:
@@ -87,9 +80,9 @@ class SimulationManager:
     # Private methods
     def _simulate(self, item: QueueItem) -> None:
         if isinstance(item.element, Activity):
-            return self._simulate_activity(item)
+            self._simulate_activity(item)
         elif isinstance(item.element, Gateway):
-            return self._simulate_gateway(item)
+            self._simulate_gateway(item)
 
     def _simulate_activity(self, item: QueueItem) -> None:
         # TODO: Refactor this function. It's too big and complicated.
@@ -225,12 +218,15 @@ class SimulationManager:
                     QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))
 
 
-start_time = time.time()
-sim = SimulationManager(start=datetime.now(), end=datetime.now() + timedelta(days=1))
-sim.main()
-elapsed_time = time.time() - start_time
+# for sup in [2]:
+#     for tru in [3]:
+#         start_time = time.time()
+#         sim = SimulationManager(start=datetime.now() + timedelta(hours=16), end=datetime.now() + timedelta(days=30, hours=16))
+#         sim.main(f's{sup}t{tru}')
+#         elapsed_time = time.time() - start_time
+#
+# print('Total Time: ' + str(elapsed_time))
 
-print('Total Time: ' + str(elapsed_time))
 
 
 
