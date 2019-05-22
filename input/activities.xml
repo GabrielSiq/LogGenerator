@@ -57,7 +57,7 @@
 			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
 		</Resources>
 	</Activity>
-<!--    support case-->
+<!--    Support case-->
     <Activity id="close">
 		<Name>Close Case</Name>
 		<Duration>
@@ -104,6 +104,42 @@
         <Resources>
 			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
 		</Resources>
-        <Priority>High</Priority>
+	</Activity>
+<!-- Data Collection-->
+	<Activity id="city_records">
+		<Name>Check City Records</Name>
+		<Duration>
+			<Distribution type="Normal" mean="7200" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+		</Resources>
+	</Activity>
+	<Activity id="criminal_bc">
+		<Name>Perform Criminal Background Check</Name>
+		<Duration>
+			<Distribution type="Normal" mean="1800" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+		</Resources>
+	</Activity>
+	<Activity id="so_bc">
+		<Name>Check Sex Offender Registry</Name>
+		<Duration>
+			<Distribution type="Normal" mean="1800" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+		</Resources>
+	</Activity>
+	<Activity id="consolidate">
+		<Name>Priority Rebook</Name>
+		<Duration>
+			<Distribution type="Normal" mean="1800" std="600" />
+		</Duration>
+        <Resources>
+			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+		</Resources>
 	</Activity>
 </Activities>

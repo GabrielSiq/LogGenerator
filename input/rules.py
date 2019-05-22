@@ -8,4 +8,7 @@ def bug(input):
 
 def type(input):
     ticket = input['ticket']
-    return ticket['Class']
+    if ticket['Class'] == 'support':
+        return 'support'
+    else:
+        return 'trust'

@@ -4,39 +4,39 @@
 		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
-				<TimeBlock start="0" end="6">15</TimeBlock>
-				<TimeBlock start="6" end="18">40</TimeBlock>
-				<TimeBlock start="18" end="24">20</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Mon>
 			<Tue>
-				<TimeBlock start="0" end="6">15</TimeBlock>
-				<TimeBlock start="6" end="18">40</TimeBlock>
-				<TimeBlock start="18" end="24">20</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Tue>
 			<Wed>
-				<TimeBlock start="0" end="6">15</TimeBlock>
-				<TimeBlock start="6" end="18">40</TimeBlock>
-				<TimeBlock start="18" end="24">20</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Wed>
 			<Thu>
-				<TimeBlock start="0" end="6">15</TimeBlock>
-				<TimeBlock start="6" end="18">40</TimeBlock>
-				<TimeBlock start="18" end="24">20</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Thu>
 			<Fri>
-				<TimeBlock start="0" end="6">15</TimeBlock>
-				<TimeBlock start="6" end="18">40</TimeBlock>
-				<TimeBlock start="18" end="24">20</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Fri>
 			<Sat>
-				<TimeBlock start="0" end="6">20</TimeBlock>
-				<TimeBlock start="6" end="18">50</TimeBlock>
-				<TimeBlock start="18" end="24">30</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Sat>
 			<Sun>
-				<TimeBlock start="0" end="6">20</TimeBlock>
-				<TimeBlock start="6" end="18">50</TimeBlock>
-				<TimeBlock start="18" end="24">30</TimeBlock>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Sun>
 		</ArrivalRate>
 		<!-- How do we indicate which activities, upon failure, will cause the instance to fail? -->
@@ -110,7 +110,7 @@
 			</Transition>
 			<Transition source="type" source_gate="trust" destination="open_trust">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 			<Transition source="send_to_eng" destination="END">
@@ -140,7 +140,7 @@
 			</Transition>
 			<Transition source="send_response" destination="END">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 			<Transition source="open_support" destination="END">
@@ -156,39 +156,39 @@
 		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
-				<TimeBlock start="0" end="6">9</TimeBlock>
-				<TimeBlock start="6" end="18">24</TimeBlock>
-				<TimeBlock start="18" end="24">12</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Mon>
 			<Tue>
-				<TimeBlock start="0" end="6">9</TimeBlock>
-				<TimeBlock start="6" end="18">24</TimeBlock>
-				<TimeBlock start="18" end="24">12</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Tue>
 			<Wed>
-				<TimeBlock start="0" end="6">9</TimeBlock>
-				<TimeBlock start="6" end="18">24</TimeBlock>
-				<TimeBlock start="18" end="24">12</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Wed>
 			<Thu>
-				<TimeBlock start="0" end="6">9</TimeBlock>
-				<TimeBlock start="6" end="18">24</TimeBlock>
-				<TimeBlock start="18" end="24">12</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Thu>
 			<Fri>
-				<TimeBlock start="0" end="6">9</TimeBlock>
-				<TimeBlock start="6" end="18">24</TimeBlock>
-				<TimeBlock start="18" end="24">12</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Fri>
 			<Sat>
-				<TimeBlock start="0" end="6">12</TimeBlock>
-				<TimeBlock start="6" end="18">30</TimeBlock>
-				<TimeBlock start="18" end="24">18</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Sat>
 			<Sun>
-				<TimeBlock start="0" end="6">12</TimeBlock>
-				<TimeBlock start="6" end="18">30</TimeBlock>
-				<TimeBlock start="18" end="24">18</TimeBlock>
+				<TimeBlock start="0" end="6">3</TimeBlock>
+				<TimeBlock start="6" end="18">8</TimeBlock>
+				<TimeBlock start="18" end="24">4</TimeBlock>
 			</Sun>
 		</ArrivalRate>
 		<Activities>
@@ -260,7 +260,7 @@
 			</Transition>
 			<Transition source="merit" source_gate="no" destination="send_response">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 			<Transition source="payment" destination="hostFault">
@@ -295,7 +295,7 @@
 			</Transition>
 			<Transition source="close" destination="END">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 			<Transition source="send_to_host" destination="END">
@@ -311,39 +311,39 @@
 		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Mon>
 			<Tue>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Tue>
 			<Wed>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Wed>
 			<Thu>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Thu>
 			<Fri>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Fri>
 			<Sat>
-				<TimeBlock start="0" end="6">4</TimeBlock>
-				<TimeBlock start="6" end="18">10</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Sat>
 			<Sun>
-				<TimeBlock start="0" end="6">4</TimeBlock>
-				<TimeBlock start="6" end="18">10</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
+				<TimeBlock start="0" end="6">1</TimeBlock>
+				<TimeBlock start="6" end="18">3</TimeBlock>
+				<TimeBlock start="18" end="24">2</TimeBlock>
 			</Sun>
 		</ArrivalRate>
 		<Activities>
@@ -411,7 +411,7 @@
 			</Transition>
 			<Transition source="potentialDanger" source_gate="no" destination="research">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 			<Transition source="rebook" destination="close">
@@ -441,7 +441,120 @@
 			</Transition>
 			<Transition source="close" destination="END">
 				<Duration>
-					<Distribution type="Normal" mean="432000" std="86400" />
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+		</Transitions>
+		<Deadline>50000000</Deadline>
+	</Model>
+	<Model id="data_collection">
+		<Name>Data Collection</Name>
+		<ArrivalRate>
+			<Mon>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Mon>
+			<Tue>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Tue>
+			<Wed>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Wed>
+			<Thu>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Thu>
+			<Fri>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Fri>
+			<Sat>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Sat>
+			<Sun>
+				<TimeBlock start="0" end="6">5</TimeBlock>
+				<TimeBlock start="6" end="18">12</TimeBlock>
+				<TimeBlock start="18" end="24">6</TimeBlock>
+			</Sun>
+		</ArrivalRate>
+		<Activities>
+			<Activity id="read"/>
+			<Activity id="city_records"/>
+			<Activity id="criminal_bc"/>
+			<Activity id="so_bc"/>
+			<Activity id="consolidate"/>
+		</Activities>
+		<Gateways>
+			<Gateway id="review_open">
+				<Name>Review Process Start</Name>
+				<Type>Parallel</Type>
+				<Gates>
+					<Gate id="city"/>
+					<Gate id="background"/>
+				</Gates>
+			</Gateway>
+			<Gateway id="review_close">
+				<Name>Review Process End</Name>
+				<Type>Merge</Type>
+				<Gates>
+					<Gate id="city"/>
+					<Gate id="background"/>
+				</Gates>
+			</Gateway>
+		</Gateways>
+		<Transitions>
+			<Transition source="START" destination="read">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="read" destination="review_open">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="review_open" source_gate="city" destination="city_records">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="review_open" source_gate="background" destination="criminal_bc">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="city_records" destination="review_close" source_gate="city">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="criminal_bc" destination="so_bc">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="so_bc" destination="review_close" source_gate="background">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="review_close" source_gate="out" destination="consolidate">
+				<Duration>
+					<Distribution type="Const" value="10" />
+				</Duration>
+			</Transition>
+			<Transition source="consolidate" destination="END">
+				<Duration>
+					<Distribution type="Const" value="10" />
 				</Duration>
 			</Transition>
 		</Transitions>

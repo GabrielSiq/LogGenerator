@@ -3,72 +3,200 @@
 		<Organization>Airbnb</Organization>
 		<Department>CX</Department>
 		<Role>Support Specialist</Role>
-		<Quantity>50</Quantity>
+		<Quantity>100</Quantity>
 		<Availability>
 			<Mon>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Mon>
 			<Tue>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Tue>
 			<Wed>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Wed>
 			<Thu>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Thu>
 			<Fri>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Fri>
             <Sat>
+				<TimeBlock start="0" end="2"/>
                 <TimeBlock start="10" end="12"/>
                 <TimeBlock start="13" end="15"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
             </Sat>
             <Sun>
+                <TimeBlock start="0" end="2"/>
                 <TimeBlock start="10" end="12"/>
                 <TimeBlock start="13" end="15"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
             </Sun>
 		</Availability>
 	</Resource>
+<!--	<Resource type='human' id='night_support'>-->
+<!--		<Organization>Airbnb</Organization>-->
+<!--		<Department>CX</Department>-->
+<!--		<Role>Support Specialist</Role>-->
+<!--		<Quantity>20</Quantity>-->
+<!--		<Availability>-->
+<!--			<Mon>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Mon>-->
+<!--			<Tue>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Tue>-->
+<!--			<Wed>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Wed>-->
+<!--			<Thu>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Thu>-->
+<!--			<Fri>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Fri>-->
+<!--            <Sat>-->
+<!--                <TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--            </Sat>-->
+<!--            <Sun>-->
+<!--                <TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--            </Sun>-->
+<!--		</Availability>-->
+<!--	</Resource>-->
 	<Resource type='human' id='trust'>
 		<Organization>Airbnb</Organization>
 		<Department>Trust</Department>
 		<Role>Trust Specialist</Role>
-		<Quantity>50</Quantity>
+		<Quantity>100</Quantity>
 		<Availability>
 			<Mon>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Mon>
 			<Tue>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Tue>
 			<Wed>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Wed>
 			<Thu>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Thu>
 			<Fri>
+				<TimeBlock start="0" end="2"/>
 				<TimeBlock start="9" end="12"/>
                 <TimeBlock start="13" end="17"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
 			</Fri>
             <Sat>
+                <TimeBlock start="0" end="2"/>
                 <TimeBlock start="10" end="12"/>
                 <TimeBlock start="13" end="15"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
             </Sat>
             <Sun>
+                <TimeBlock start="0" end="2"/>
                 <TimeBlock start="10" end="12"/>
                 <TimeBlock start="13" end="15"/>
+				<TimeBlock start="18" end="22"/>
+				<TimeBlock start="23" end="24"/>
             </Sun>
 		</Availability>
 	</Resource>
+<!--	<Resource type='human' id='night_trust'>-->
+<!--		<Organization>Airbnb</Organization>-->
+<!--		<Department>Trust</Department>-->
+<!--		<Role>Trust Specialist</Role>-->
+<!--		<Quantity>5</Quantity>-->
+<!--		<Availability>-->
+<!--			<Mon>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Mon>-->
+<!--			<Tue>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Tue>-->
+<!--			<Wed>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Wed>-->
+<!--			<Thu>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Thu>-->
+<!--			<Fri>-->
+<!--				<TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--			</Fri>-->
+<!--            <Sat>-->
+<!--                <TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--            </Sat>-->
+<!--            <Sun>-->
+<!--                <TimeBlock start="0" end="2"/>-->
+<!--				<TimeBlock start="18" end="22"/>-->
+<!--                <TimeBlock start="23" end="24"/>-->
+<!--            </Sun>-->
+<!--		</Availability>-->
+<!--	</Resource>-->
 </Resources>
