@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import timedelta, datetime
 from heapq import heappush, heappop
+from random import sample
 from typing import List, Union, Tuple, Dict, Optional
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
@@ -100,7 +101,8 @@ class ResourceManager:
 
     def _search_human(self, org: str, dept: str, role: str, available: bool = None, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
         result = []
-        for resource in self._search_all_human(org, dept, role):
+        all = self._search_all_human(org, dept, role)
+        for resource in sample(all, len(all)):
             if available is None or resource.is_available(start_time) == available:
                 result.append(resource)
         return sorted(result, key=lambda x: x.available_until(start_time, end_time), reverse=True)
@@ -184,12 +186,15 @@ class HumanResource(Resource):
     # Public methods
     def use(self, start_time: datetime, duration: int, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int) -> None:
         end_time = start_time + timedelta(seconds=duration)
-        if self.busy_until <= start_time and self.availability.is_available(start_time) and self.availability.available_until(start_time, end_time) >= end_time:
-            self.busy_until = end_time
-            self.current_process_id = process_id
-            self.current_process_instance_id = process_instance_id
-            self.current_activity_id = activity_id
-            self.current_activity_instance_id = activity_instance_id
+        if self.busy_until <= start_time and self.availability.is_available(start_time):
+            if self.availability.available_until(start_time, end_time) >= end_time:
+                self.busy_until = end_time
+                self.current_process_id = process_id
+                self.current_process_instance_id = process_instance_id
+                self.current_activity_id = activity_id
+                self.current_activity_instance_id = activity_instance_id
+            else:
+                raise RuntimeError("Resource requested for longer than it's available.")
         else:
             raise RuntimeError("Resource %s is busy and cannot be used." % self.id)
 
@@ -296,8 +301,10 @@ class Availability:
         if not self.is_available(start):
             return start
         current = start
-        while self.is_available(current) and current < end:
+        while self.is_available(current + timedelta(hours=1)):
             current += timedelta(hours=1)
+            if current > end:
+                break
         current = current.replace(microsecond=0, second=59, minute=59)
         return min(current, end)
 
