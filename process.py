@@ -17,7 +17,6 @@ class ProcessInstance:
     def get_element_instance_id(self, id: str) -> int:
         if id == "END":
             return 0
-        # TODO: think of a better way to handle this exception for merge
         if id not in self.process_reference.gateways or self.process_reference.gateways[id].type != 'merge':
             self.last_activities[id] += 1
         return self.last_activities[id] - 1
@@ -43,8 +42,7 @@ class Process:
     # Public methods
 
     def get_arrival_rate(self, day: str, hour: int) -> int:
-        # TODO: Improve modeling of arrival rate to allow for various levels of granularity (2h)
-        # For now, arrival rate is only represented in terms of instances per hour.
+        # For now, arrival rate is represented in terms of instances per hour.
         try:
             return self.arrival_rate[day][hour]
         except KeyError:

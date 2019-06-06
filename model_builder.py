@@ -11,7 +11,7 @@ from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
-# TODO: Implement XML validation. (5h)
+# TODO: Implement XML validation.
 
 
 class ModelBuilder:
@@ -123,7 +123,7 @@ class ModelBuilder:
 
         if resources_child is not None:
             for resource in resources_child:
-                # TODO: Change resources to be more flexible. We need to accept subtypes of resources and etc. For now we specify one type of resource. (2h)
+                # TODO: Adapt for multi-resource.
                 try:
                     res = resource.attrib
                     res['qty'] = int(resource.text)
@@ -139,8 +139,6 @@ class ModelBuilder:
             retries = failure_child.get('retries')
             fields['failure_rate'] = float(failure_rate)
             fields['retries'] = int(retries)
-
-        # TODO: implement similar try/except methodology for others. (2h)
         try:
             fields['timeout'] = int(activity_child.find('Timeout').text)
         except AttributeError:

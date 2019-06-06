@@ -1,5 +1,4 @@
 from typing import Union, Tuple
-
 from duration import Duration
 
 

@@ -1,7 +1,6 @@
 <Models>
 	<Model id='triage'>
 		<Name>Ticket Triage</Name>
-		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
 				<TimeBlock start="0" end="6">5</TimeBlock>
@@ -39,7 +38,6 @@
 				<TimeBlock start="18" end="24">6</TimeBlock>
 			</Sun>
 		</ArrivalRate>
-		<!-- How do we indicate which activities, upon failure, will cause the instance to fail? -->
 		<Activities>
 			<Activity id="read">
 				<DataOutput>
@@ -153,7 +151,6 @@
 	</Model>
 	<Model id="support">
 		<Name>Support Case</Name>
-		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
 				<TimeBlock start="0" end="6">3</TimeBlock>
@@ -308,7 +305,6 @@
 	</Model>
 	<Model id="trust">
 		<Name>Trust Case</Name>
-		<!-- per hour -->
 		<ArrivalRate>
 			<Mon>
 				<TimeBlock start="0" end="6">1</TimeBlock>
@@ -560,93 +556,4 @@
 		</Transitions>
 		<Deadline>50000000</Deadline>
 	</Model>
-<!--	<Model id='plus'>-->
-<!--		<Name>Listing Application</Name>-->
-<!--		&lt;!&ndash; per hour &ndash;&gt;-->
-<!--		<ArrivalRate>-->
-<!--			<Mon>-->
-<!--				<TimeBlock start="9" end="17">0</TimeBlock>-->
-<!--			</Mon>-->
-<!--			<Tue>-->
-<!--				<TimeBlock start="9" end="17">0</TimeBlock>-->
-<!--			</Tue>-->
-<!--			<Wed>-->
-<!--				<TimeBlock start="9" end="17">1</TimeBlock>-->
-<!--			</Wed>-->
-<!--			<Thu>-->
-<!--				<TimeBlock start="9" end="17">0</TimeBlock>-->
-<!--			</Thu>-->
-<!--			<Fri>-->
-<!--				<TimeBlock start="9" end="17">0</TimeBlock>-->
-<!--			</Fri>-->
-<!--		</ArrivalRate>-->
-<!--		<Deadline>2592000</Deadline>-->
-<!--		&lt;!&ndash; How do we indicate which activities, upon failure, will cause the instance to fail? &ndash;&gt;-->
-<!--		<Activities>-->
-<!--			<Activity id="application"/>-->
-<!--			<Activity id="verify"/>-->
-<!--			<Activity id="quality"/>-->
-<!--			<Activity id="review"/>-->
-<!--		</Activities>-->
-<!--		<Gateways>-->
-<!--			<Gateway id="checklistCompleted">-->
-<!--				<Name>Checklist Completed?</Name>-->
-<!--				<Type>Parallel</Type>-->
-<!--				<Gates>-->
-<!--					<Gate id="a"/>-->
-<!--					<Gate id="b"/>-->
-<!--				</Gates>-->
-<!--			</Gateway>-->
-<!--			<Gateway id="mergeTest">-->
-<!--				<Name>Merge Test</Name>-->
-<!--				<Type>Merge</Type>-->
-<!--				<Gates>-->
-<!--					<Gate id="a"/>-->
-<!--					<Gate id="b"/>-->
-<!--				</Gates>-->
-<!--			</Gateway>-->
-<!--		</Gateways>-->
-<!--		<Transitions>-->
-<!--			<Transition source="START" destination="application">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="application" destination="checklistCompleted">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="checklistCompleted" source_gate="a" destination="verify">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="checklistCompleted" source_gate="b" destination="quality">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="quality" destination="mergeTest" destination_gate = 'a'>-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="verify" destination="mergeTest" destination_gate = 'b'>-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="mergeTest" source_gate="out" destination="review">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--			<Transition source="review" destination="END">-->
-<!--				<Duration>-->
-<!--					<Distribution type="Const" value="10" />-->
-<!--				</Duration>-->
-<!--			</Transition>-->
-<!--		</Transitions>-->
-<!--	</Model>-->
 </Models>

@@ -23,7 +23,7 @@ class ResourceManager:
     # Public methods
 
     def assign_resources(self, requirement_list: List[ResourceRequirement], process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
-        # TODO: Implement the case when there are more than one requirement. Does it mean one or another or does it mean multiple? This is a modeling question that needs to be answered. (2h)
+        # TODO: Adapt for multi-resource case.
         for requirement in requirement_list:
             return self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
 
@@ -46,9 +46,8 @@ class ResourceManager:
         return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
 
     def when_available(self, requirement_list: List[ResourceRequirement], start_time: datetime = None, end_time: datetime = None) -> List[datetime]:
-        # TODO: What about physical resources? The same logic doesn't apply... (2h)
+        # TODO: Adapt for physical resources and multi-resource.
         requirement = requirement_list[0]
-        # TODO: Handle more than one resource here as well... (2h)
         resources = self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=False, start_time=start_time, end_time=end_time, amount=requirement.quantity)
         return sorted(resources, key=lambda x: x.when_available(start_time))[0].when_available(start_time)
 
@@ -220,7 +219,6 @@ class HumanResource(Resource):
 
 class PhysicalResource(Resource):
     # Initialization and instance variables
-    # TODO: come up with example and also implement in simulation the ordering of new materials. (3h)
     def __init__(self, id: str, type: str, quantity: int, delay: Union[dict, int], consumable: bool) -> None:
         Resource.__init__(self, id=id)
         self.type = type
