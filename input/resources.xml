@@ -1,9 +1,9 @@
 <Resources>
 	<Resource type='human' id='support'>
-		<Organization>Airbnb</Organization>
-		<Department>CX</Department>
-		<Role>Support Specialist</Role>
-		<Quantity>100</Quantity>
+		<Organization>Company, Inc.</Organization>
+		<Department>Customer Experience</Department>
+		<Role>Support</Role>
+		<Quantity>70</Quantity>
 		<Availability>
 			<Mon>
 				<TimeBlock start="0" end="2"/>

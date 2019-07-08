@@ -9,7 +9,7 @@
 			<DataObject id="ticket"/>
 		</DataOutput>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="send_to_eng">
@@ -18,7 +18,7 @@
 			<Distribution type="Normal" mean="600" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="open_trust">
@@ -27,7 +27,7 @@
 			<Distribution type="Normal" mean="600" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="check_faq">
@@ -36,7 +36,7 @@
 			<Distribution type="Normal" mean="900" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="open_support">
@@ -45,7 +45,7 @@
 			<Distribution type="Normal" mean="600" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="send_response">
@@ -54,7 +54,7 @@
 			<Distribution type="Normal" mean="300" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
 <!--    Support case-->
@@ -64,7 +64,7 @@
 			<Distribution type="Normal" mean="300" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
     <Activity id="payment">
@@ -73,7 +73,7 @@
 			<Distribution type="Normal" mean="900" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
 	<Activity id="send_to_host">
@@ -82,7 +82,7 @@
 			<Distribution type="Normal" mean="300" std="180" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
 <!--    Trust Case-->
@@ -92,7 +92,7 @@
 			<Distribution type="Normal" mean="1800" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 		</Resources>
         <Priority>High</Priority>
 	</Activity>
@@ -102,7 +102,7 @@
 			<Distribution type="Normal" mean="1800" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 		</Resources>
 	</Activity>
 <!-- Data Collection-->
@@ -112,7 +112,7 @@
 			<Distribution type="Normal" mean="7200" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="CX" role="Support Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Support">1</Resource>
 		</Resources>
 	</Activity>
 	<Activity id="criminal_bc">
@@ -121,7 +121,7 @@
 			<Distribution type="Normal" mean="1800" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 		</Resources>
 	</Activity>
 	<Activity id="so_bc">
@@ -130,7 +130,7 @@
 			<Distribution type="Normal" mean="1800" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 		</Resources>
 	</Activity>
 	<Activity id="consolidate">
@@ -139,7 +139,7 @@
 			<Distribution type="Normal" mean="1800" std="600" />
 		</Duration>
         <Resources>
-			<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+			<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 		</Resources>
 	</Activity>
 </Activities>
