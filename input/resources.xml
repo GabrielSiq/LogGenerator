@@ -57,9 +57,9 @@
 		</Availability>
 	</Resource>
 	<Resource type='human' id='trust'>
-		<Organization>Airbnb</Organization>
-		<Department>Trust</Department>
-		<Role>Trust Specialist</Role>
+		<Organization>Company, Inc.</Organization>
+		<Department>Customer Experience</Department>
+		<Role>Trust</Role>
 		<Quantity>100</Quantity>
 		<Availability>
 			<Mon>

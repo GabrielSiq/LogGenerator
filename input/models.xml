@@ -345,7 +345,7 @@
 		<Activities>
 			<Activity id="read">
 				<Resources>
-					<Resource class_type="human" org="Airbnb" dept="Trust" role="Trust Specialist">1</Resource>
+					<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
 				</Resources>
 			</Activity>
 			<Activity id="rebook"/>
