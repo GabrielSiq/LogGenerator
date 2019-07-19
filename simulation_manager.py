@@ -26,7 +26,7 @@ class SimulationManager:
         self.running_processes = dict()
 
     # Public methods
-    def main(self, name, resource_limit):
+    def simulate(self, name=None, resource_limit=None):
         model = ModelBuilder()
         self.models, self.rm, self.dm = model.build_all(resource_limit=resource_limit)
 
