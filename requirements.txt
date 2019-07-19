@@ -1,0 +1,5 @@
+certifi==2019.3.9
+mkl-fft==1.0.12
+mkl-random==1.0.2
+numpy==1.16.3
+wincertstore==0.2
