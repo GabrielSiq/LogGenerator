@@ -32,10 +32,47 @@ class LogWriter:
     def write(log: PriorityQueue, location: str = DEFAULT_PATHS['log'], name: str = None, format: str = 'json') -> None:
         data_folder = Path(location)
         LogWriter._create_output_path(data_folder)
-        if format == SUPPORTED_FORMATS['json']:
+        # hardcoded Yan's output for Ran. Useless for the future.
+        if True:
+            LogWriter._write_yan(log, data_folder, name)
+        elif format == SUPPORTED_FORMATS['json']:
             LogWriter._write_json(log, data_folder, name)
 
     # Private methods
+
+    @staticmethod
+    def _write_yan(log_list: PriorityQueue, location: Path, name: str) -> None:
+        file_to_open = LogWriter._unique_path(location, name, '.txt')
+        output = []
+        lid = 1
+        count = {}
+        with file_to_open.open(mode='w') as f:
+            while not log_list.is_empty():
+                item = log_list.pop()
+                if item.status == 'end_activity':
+                    if item.process_instance_id not in count.keys():
+                        count[item.process_instance_id] = 1
+                    entry = str(lid) + ' ' + str(item.process_instance_id) + ' ' + str(count[item.process_instance_id]) + " " + item.activity_id
+                    if item.resource is not None:
+                        for key, value in item.resource.items():
+                            entry += ' ' + key + '=' + str(value)
+                    if item.data_input is not None:
+                        for name, data_object in item.data_input.items():
+                            for key, value in data_object.items():
+                                entry += ' ' + key + '=' + str(value)
+                    entry += ' #'
+                    if item.data_output is not None:
+                        for name, data_object in item.data_output.items():
+                            for key, value in data_object.items():
+                                entry += ' ' + key + '=' + str(value)
+
+                    entry += '\n'
+                    f.write(entry)
+                    count[item.process_instance_id] += 1
+                    lid += 1
+
+
+
     @staticmethod
     def _write_json(log_list: PriorityQueue, location: Path, name: str) -> None:
         file_to_open = LogWriter._unique_path(location, name, '.json')

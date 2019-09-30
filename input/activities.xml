@@ -5,6 +5,9 @@
 		<Duration>
 			<Distribution type="Normal" mean="300" std="180" />
 		</Duration>
+		<DataInput>
+			<DataObject id="ticket"/>
+		</DataInput>
 		<DataOutput>
 			<DataObject id="ticket"/>
 		</DataOutput>

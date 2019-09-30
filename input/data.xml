@@ -2,6 +2,7 @@
 	<DataObject id="ticket" type="form">
 		<Name>Ticket</Name>
 		<Fields>
+			<Field name="Value">50</Field>
 			<Field name="Class"></Field>
 		</Fields>
 	</DataObject>

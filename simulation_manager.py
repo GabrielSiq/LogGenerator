@@ -117,7 +117,7 @@ class SimulationManager:
                 self.log_queue.push(
                     LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
                             item.element_id, item.element_instance_id,
-                            'end_activity', resource=assigned, data_output=output))
+                            'end_activity', resource=assigned, data_input=input, data_output=output))
                 # add next to queue
                 element, gate, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:

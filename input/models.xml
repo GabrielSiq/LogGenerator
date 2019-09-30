@@ -40,10 +40,18 @@
 		</ArrivalRate>
 		<Activities>
 			<Activity id="read">
+				<DataInput>
+					<DataObject id="ticket">
+						<Fields>
+							<Field name ="Value"/>
+						</Fields>
+					</DataObject>
+				</DataInput>
 				<DataOutput>
 					<DataObject id="ticket">
 						<Fields>
 							<Field name="Class"/>
+							<Field name ="Value"/>
 						</Fields>
 					</DataObject>
 				</DataOutput>
@@ -149,411 +157,411 @@
 		</Transitions>
 		<Deadline>50000000</Deadline>
 	</Model>
-	<Model id="support">
-		<Name>Support Case</Name>
-		<ArrivalRate>
-			<Mon>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Sun>
-		</ArrivalRate>
-		<Activities>
-			<Activity id="read"/>
-			<Activity id="payment"/>
-			<Activity id="close"/>
-			<Activity id="send_to_host"/>
-			<Activity id="send_response"/>
-		</Activities>
-		<Gateways>
-			<Gateway id="financial">
-				<Name>Is it a financial matter?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.3</Gate>
-					<Gate id='no'>0.7</Gate>
-				</Distribution>
-			</Gateway>
-			<Gateway id="merit">
-				<Name>Does the claim have merit?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.8</Gate>
-					<Gate id='no'>0.2</Gate>
-				</Distribution>
-			</Gateway>
-			<Gateway id="hostFault">
-				<Name>Is the host at fault?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.5</Gate>
-					<Gate id='no'>0.5</Gate>
-				</Distribution>
-			</Gateway>
-			<Gateway id="resolved">
-				<Name>Is the matter resolved?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.8</Gate>
-					<Gate id='no'>0.2</Gate>
-				</Distribution>
-			</Gateway>
-		</Gateways>
-		<Transitions>
-			<Transition source="START" destination="read">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="read" destination="financial">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="financial" source_gate="yes" destination="merit">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="financial" source_gate="no" destination="send_response">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="merit" source_gate="yes" destination="payment">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="merit" source_gate="no" destination="send_response">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="payment" destination="hostFault">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="send_response" destination="resolved">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="hostFault" source_gate="yes" destination="send_to_host">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="hostFault" source_gate="no" destination="close">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="resolved" source_gate="yes" destination="close">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="resolved" source_gate="no" destination="send_response">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="close" destination="END">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="send_to_host" destination="END">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-		</Transitions>
-		<Deadline>50000000</Deadline>
-	</Model>
-	<Model id="trust">
-		<Name>Trust Case</Name>
-		<ArrivalRate>
-			<Mon>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Sun>
-		</ArrivalRate>
-		<Activities>
-			<Activity id="read">
-				<Resources>
-					<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>
-				</Resources>
-			</Activity>
-			<Activity id="rebook"/>
-			<Activity id="close"/>
-			<Activity id="research"/>
-			<Activity id="send_response"/>
-		</Activities>
-		<Gateways>
-			<Gateway id="currentTrip">
-				<Name>Incident in current trip?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.7</Gate>
-					<Gate id='no'>0.3</Gate>
-				</Distribution>
-			</Gateway>
-			<Gateway id="potentialDanger">
-				<Name>Does the guest feel unsafe?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.3</Gate>
-					<Gate id='no'>0.7</Gate>
-				</Distribution>
-			</Gateway>
-			<Gateway id="resolved">
-				<Name>Is the matter resolved?</Name>
-				<Type>Choice</Type>
-				<Distribution>
-					<Gate id='yes'>0.8</Gate>
-					<Gate id='no'>0.2</Gate>
-				</Distribution>
-			</Gateway>
-		</Gateways>
-		<Transitions>
-			<Transition source="START" destination="read">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="read" destination="currentTrip">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="currentTrip" source_gate="yes" destination="potentialDanger">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="currentTrip" source_gate="no" destination="research">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="potentialDanger" source_gate="yes" destination="rebook">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="potentialDanger" source_gate="no" destination="research">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="rebook" destination="close">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="research" destination="send_response">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="send_response" destination="resolved">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="resolved" source_gate="yes" destination="close">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="resolved" source_gate="no" destination="send_response">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="close" destination="END">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-		</Transitions>
-		<Deadline>50000000</Deadline>
-	</Model>
-	<Model id="data_collection">
-		<Name>Data Collection</Name>
-		<ArrivalRate>
-			<Mon>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sun>
-		</ArrivalRate>
-		<Activities>
-			<Activity id="read"/>
-			<Activity id="city_records"/>
-			<Activity id="criminal_bc"/>
-			<Activity id="so_bc"/>
-			<Activity id="consolidate"/>
-		</Activities>
-		<Gateways>
-			<Gateway id="review_open">
-				<Name>Review Process Start</Name>
-				<Type>Parallel</Type>
-				<Gates>
-					<Gate id="city"/>
-					<Gate id="background"/>
-				</Gates>
-			</Gateway>
-			<Gateway id="review_close">
-				<Name>Review Process End</Name>
-				<Type>Merge</Type>
-				<Gates>
-					<Gate id="city"/>
-					<Gate id="background"/>
-				</Gates>
-			</Gateway>
-		</Gateways>
-		<Transitions>
-			<Transition source="START" destination="read">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="read" destination="review_open">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="review_open" source_gate="city" destination="city_records">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="review_open" source_gate="background" destination="criminal_bc">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="city_records" destination="review_close" source_gate="city">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="criminal_bc" destination="so_bc">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="so_bc" destination="review_close" source_gate="background">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="review_close" source_gate="out" destination="consolidate">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-			<Transition source="consolidate" destination="END">
-				<Duration>
-					<Distribution type="Const" value="10" />
-				</Duration>
-			</Transition>
-		</Transitions>
-		<Deadline>50000000</Deadline>
-	</Model>
+<!--	<Model id="support">-->
+<!--		<Name>Support Case</Name>-->
+<!--		<ArrivalRate>-->
+<!--			<Mon>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Mon>-->
+<!--			<Tue>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Tue>-->
+<!--			<Wed>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Wed>-->
+<!--			<Thu>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Thu>-->
+<!--			<Fri>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Fri>-->
+<!--			<Sat>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Sat>-->
+<!--			<Sun>-->
+<!--				<TimeBlock start="0" end="6">3</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">8</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">4</TimeBlock>-->
+<!--			</Sun>-->
+<!--		</ArrivalRate>-->
+<!--		<Activities>-->
+<!--			<Activity id="read"/>-->
+<!--			<Activity id="payment"/>-->
+<!--			<Activity id="close"/>-->
+<!--			<Activity id="send_to_host"/>-->
+<!--			<Activity id="send_response"/>-->
+<!--		</Activities>-->
+<!--		<Gateways>-->
+<!--			<Gateway id="financial">-->
+<!--				<Name>Is it a financial matter?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.3</Gate>-->
+<!--					<Gate id='no'>0.7</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="merit">-->
+<!--				<Name>Does the claim have merit?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.8</Gate>-->
+<!--					<Gate id='no'>0.2</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="hostFault">-->
+<!--				<Name>Is the host at fault?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.5</Gate>-->
+<!--					<Gate id='no'>0.5</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="resolved">-->
+<!--				<Name>Is the matter resolved?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.8</Gate>-->
+<!--					<Gate id='no'>0.2</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--		</Gateways>-->
+<!--		<Transitions>-->
+<!--			<Transition source="START" destination="read">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="read" destination="financial">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="financial" source_gate="yes" destination="merit">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="financial" source_gate="no" destination="send_response">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="merit" source_gate="yes" destination="payment">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="merit" source_gate="no" destination="send_response">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="payment" destination="hostFault">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="send_response" destination="resolved">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="hostFault" source_gate="yes" destination="send_to_host">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="hostFault" source_gate="no" destination="close">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="resolved" source_gate="yes" destination="close">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="resolved" source_gate="no" destination="send_response">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="close" destination="END">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="send_to_host" destination="END">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--		</Transitions>-->
+<!--		<Deadline>50000000</Deadline>-->
+<!--	</Model>-->
+<!--	<Model id="trust">-->
+<!--		<Name>Trust Case</Name>-->
+<!--		<ArrivalRate>-->
+<!--			<Mon>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Mon>-->
+<!--			<Tue>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Tue>-->
+<!--			<Wed>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Wed>-->
+<!--			<Thu>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Thu>-->
+<!--			<Fri>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Fri>-->
+<!--			<Sat>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Sat>-->
+<!--			<Sun>-->
+<!--				<TimeBlock start="0" end="6">1</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">3</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">2</TimeBlock>-->
+<!--			</Sun>-->
+<!--		</ArrivalRate>-->
+<!--		<Activities>-->
+<!--			<Activity id="read">-->
+<!--				<Resources>-->
+<!--					<Resource class_type="human" org="Company, Inc." dept="Customer Experience" role="Trust">1</Resource>-->
+<!--				</Resources>-->
+<!--			</Activity>-->
+<!--			<Activity id="rebook"/>-->
+<!--			<Activity id="close"/>-->
+<!--			<Activity id="research"/>-->
+<!--			<Activity id="send_response"/>-->
+<!--		</Activities>-->
+<!--		<Gateways>-->
+<!--			<Gateway id="currentTrip">-->
+<!--				<Name>Incident in current trip?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.7</Gate>-->
+<!--					<Gate id='no'>0.3</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="potentialDanger">-->
+<!--				<Name>Does the guest feel unsafe?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.3</Gate>-->
+<!--					<Gate id='no'>0.7</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="resolved">-->
+<!--				<Name>Is the matter resolved?</Name>-->
+<!--				<Type>Choice</Type>-->
+<!--				<Distribution>-->
+<!--					<Gate id='yes'>0.8</Gate>-->
+<!--					<Gate id='no'>0.2</Gate>-->
+<!--				</Distribution>-->
+<!--			</Gateway>-->
+<!--		</Gateways>-->
+<!--		<Transitions>-->
+<!--			<Transition source="START" destination="read">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="read" destination="currentTrip">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="currentTrip" source_gate="yes" destination="potentialDanger">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="currentTrip" source_gate="no" destination="research">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="potentialDanger" source_gate="yes" destination="rebook">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="potentialDanger" source_gate="no" destination="research">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="rebook" destination="close">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="research" destination="send_response">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="send_response" destination="resolved">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="resolved" source_gate="yes" destination="close">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="resolved" source_gate="no" destination="send_response">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="close" destination="END">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--		</Transitions>-->
+<!--		<Deadline>50000000</Deadline>-->
+<!--	</Model>-->
+<!--	<Model id="data_collection">-->
+<!--		<Name>Data Collection</Name>-->
+<!--		<ArrivalRate>-->
+<!--			<Mon>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Mon>-->
+<!--			<Tue>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Tue>-->
+<!--			<Wed>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Wed>-->
+<!--			<Thu>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Thu>-->
+<!--			<Fri>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Fri>-->
+<!--			<Sat>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Sat>-->
+<!--			<Sun>-->
+<!--				<TimeBlock start="0" end="6">5</TimeBlock>-->
+<!--				<TimeBlock start="6" end="18">12</TimeBlock>-->
+<!--				<TimeBlock start="18" end="24">6</TimeBlock>-->
+<!--			</Sun>-->
+<!--		</ArrivalRate>-->
+<!--		<Activities>-->
+<!--			<Activity id="read"/>-->
+<!--			<Activity id="city_records"/>-->
+<!--			<Activity id="criminal_bc"/>-->
+<!--			<Activity id="so_bc"/>-->
+<!--			<Activity id="consolidate"/>-->
+<!--		</Activities>-->
+<!--		<Gateways>-->
+<!--			<Gateway id="review_open">-->
+<!--				<Name>Review Process Start</Name>-->
+<!--				<Type>Parallel</Type>-->
+<!--				<Gates>-->
+<!--					<Gate id="city"/>-->
+<!--					<Gate id="background"/>-->
+<!--				</Gates>-->
+<!--			</Gateway>-->
+<!--			<Gateway id="review_close">-->
+<!--				<Name>Review Process End</Name>-->
+<!--				<Type>Merge</Type>-->
+<!--				<Gates>-->
+<!--					<Gate id="city"/>-->
+<!--					<Gate id="background"/>-->
+<!--				</Gates>-->
+<!--			</Gateway>-->
+<!--		</Gateways>-->
+<!--		<Transitions>-->
+<!--			<Transition source="START" destination="read">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="read" destination="review_open">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="review_open" source_gate="city" destination="city_records">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="review_open" source_gate="background" destination="criminal_bc">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="city_records" destination="review_close" source_gate="city">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="criminal_bc" destination="so_bc">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="so_bc" destination="review_close" source_gate="background">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="review_close" source_gate="out" destination="consolidate">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--			<Transition source="consolidate" destination="END">-->
+<!--				<Duration>-->
+<!--					<Distribution type="Const" value="10" />-->
+<!--				</Duration>-->
+<!--			</Transition>-->
+<!--		</Transitions>-->
+<!--		<Deadline>50000000</Deadline>-->
+<!--	</Model>-->
 </Models>
