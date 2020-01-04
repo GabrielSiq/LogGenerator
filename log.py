@@ -44,7 +44,7 @@ class LogWriter:
     def _write_yan(log_list: PriorityQueue, location: Path, name: str) -> None:
         file_to_open = LogWriter._unique_path(location, name, '.txt')
         output = []
-        lid = 1
+        lsn = 1
         count = {}
         with file_to_open.open(mode='w') as f:
             while not log_list.is_empty():
@@ -52,7 +52,10 @@ class LogWriter:
                 if item.status == 'end_activity':
                     if item.process_instance_id not in count.keys():
                         count[item.process_instance_id] = 1
-                    entry = str(lid) + ' ' + str(item.process_instance_id) + ' ' + str(count[item.process_instance_id]) + " " + item.activity_id
+                    wid = item.process_instance_id
+                    is_lsn = count[item.process_instance_id]
+                    t = item.activity_id
+                    entry = str(lsn) + ' ' + str(wid) + ' ' + str(is_lsn) + " " + t
                     if item.resource is not None:
                         for key, value in item.resource.items():
                             entry += ' ' + key + '=' + str(value)
@@ -69,7 +72,7 @@ class LogWriter:
                     entry += '\n'
                     f.write(entry)
                     count[item.process_instance_id] += 1
-                    lid += 1
+                    lsn += 1
 
 
 

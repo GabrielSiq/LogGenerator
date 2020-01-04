@@ -122,6 +122,12 @@ class SimulationManager:
                 element, gate, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:
                     self._push_to_execution(item.successor(element, duration=duration, delay=delay), current_gate=gate)
+                # END activity by Ran's request - not included by design, removal recommended
+                else:
+                    self.log_queue.push(
+                        LogItem(item.start + timedelta(seconds=max_duration + 1), item.process_id, item.process_instance_id,
+                                'END', 0,
+                                'end_activity'))
 
     def _simulate_gateway(self, item: QueueItem) -> None:
         gateway = item.element
@@ -180,6 +186,11 @@ class SimulationManager:
                 act = instance.process_reference.get_first_activity()[0]
                 self.execution_queue.push(
                     QueueItem(instance, act.id, instance.get_element_instance_id(act.id), time + item, act))
+                # START activity by Ran's request - not included by design, removal recommended
+                self.log_queue.push(
+                    LogItem(time + item, instance.process_id, instance.process_instance_id,
+                            'START', 0,
+                            'end_activity'))
 
 
 
