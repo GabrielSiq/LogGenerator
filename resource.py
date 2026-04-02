@@ -23,9 +23,14 @@ class ResourceManager:
     # Public methods
 
     def assign_resources(self, requirement_list: List[ResourceRequirement], process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
-        # TODO: Adapt for multi-resource case.
+        max_date = datetime.min
+        combined = {}
         for requirement in requirement_list:
-            return self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
+            date, assigned = self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
+            if date > max_date:
+                max_date = date
+            combined.update(assigned)
+        return max_date, combined
 
     def assign_resource(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         if duration is None:
@@ -65,7 +70,7 @@ class ResourceManager:
 
     def _assign_physical(self, requirement: ResourceRequirement, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         # Assigns any necessary number of physical resources to a process. Resources can be consumable or not.
-        available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
+        available = iter(self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration)))
         result = {}
         left = requirement.quantity
         while left > 0:
@@ -92,11 +97,13 @@ class ResourceManager:
             raise ValueError("Resource type %s not supported." % type)
 
     def _search_physical(self, type: str, start_time: datetime, amount: int, available: bool = None) -> List[Resource]:
-        result = []
+        scored = []
         for id, resource in self.physical_resources.items():
-            if resource.type == type and (available is None or (available is True and resource.check_free(start_time, amount) > 0) or (available is False and resource.check_free(start_time, amount) == 0)):
-                result.append(resource)
-        return sorted(result, key=lambda x: x.check_free(start_time, amount), reverse=True)
+            if resource.type == type:
+                free = resource.check_free(start_time, amount)
+                if available is None or (available is True and free > 0) or (available is False and free == 0):
+                    scored.append((free, resource))
+        return [r for _, r in sorted(scored, key=lambda x: x[0], reverse=True)]
 
     def _search_human(self, org: str, dept: str, role: str, available: bool = None, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
         result = []
