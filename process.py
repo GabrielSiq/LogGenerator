@@ -5,6 +5,7 @@ from typing import List, Union, Tuple, Dict
 
 from gateway import Gateway
 from transition import Transition
+from config import SENTINEL
 
 
 class ProcessInstance:
@@ -15,7 +16,7 @@ class ProcessInstance:
         self.last_activities = dict((activity, 1) for activity in {**self.process_reference.activities, **self.process_reference.gateways})
 
     def get_element_instance_id(self, id: str) -> int:
-        if id == "END":
+        if id == SENTINEL['end']:
             return 0
         if id not in self.process_reference.gateways or self.process_reference.gateways[id].type != 'merge':
             self.last_activities[id] += 1
@@ -50,7 +51,7 @@ class Process:
             return 0
 
     def get_first_activity(self) -> Union[Tuple[Activity, None, int], Tuple[Gateway, str, int]]:
-        return self.get_next('START')
+        return self.get_next(SENTINEL['start'])
 
     def new(self) -> ProcessInstance:
         self.instance += 1
@@ -66,7 +67,7 @@ class Process:
             return self.activities[act], None, delay
         elif act in self.gateways:
             return self.gateways[act], gate, delay
-        elif act == "END":
+        elif act == SENTINEL['end']:
             return None, None, None
         else:
             raise ValueError(f"Activity or gateway {act} can't be found")

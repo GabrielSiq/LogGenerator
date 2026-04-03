@@ -2,7 +2,7 @@ from __future__ import annotations
 import importlib
 from typing import Union
 import math
-from config import PRIORITY_VALUES, DEFAULT_PATHS
+from config import PRIORITY_VALUES, DEFAULT_PATHS, SENTINEL
 from data import DataRequirement
 from duration import Duration
 from failure import Failure
@@ -58,7 +58,7 @@ class Activity:
 
     @staticmethod
     def end() -> Activity:
-        return Activity("END", "END")
+        return Activity(SENTINEL['end'], SENTINEL['end'])
 
     # Private methods
     def __repr__(self):

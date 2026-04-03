@@ -13,8 +13,8 @@ class Gateway:
         self.name = name
         self.type = type
         if self.type == GATEWAY_TYPES['choice']:
+            self.is_rule_based = rule is not None
             if rule is not None:
-                self.type = GATEWAY_TYPES['rule']
                 self.decider = GateRule(gates, rule)
             elif distribution is not None:
                 self.decider = GateDistribution(gates, distribution)
@@ -22,9 +22,11 @@ class Gateway:
                 raise ValueError("For choice gateways, either rule or distribution must be present.")
             self.gates = gates
         elif self.type == GATEWAY_TYPES['parallel']:
+            self.is_rule_based = False
             self.decider = None
             self.gates = gates
         elif self.type == GATEWAY_TYPES['merge']:
+            self.is_rule_based = False
             self.merge_inputs = gates
             self.gates = [MERGE_OUTPUT]
         else:
@@ -35,10 +37,10 @@ class Gateway:
         if self.type == GATEWAY_TYPES['parallel'] or self.type == GATEWAY_TYPES['merge']:
             return self.gates
         elif self.type == GATEWAY_TYPES['choice']:
-            return [self.decider.get_gate()]
-        else:
-            # Rule
-            return [self.decider.get_gate(input_data)]
+            if self.is_rule_based:
+                return [self.decider.get_gate(input_data)]
+            else:
+                return [self.decider.get_gate()]
 
     def get_inputs(self) -> List[str]:
         if self.type == GATEWAY_TYPES['merge']:

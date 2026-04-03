@@ -34,6 +34,8 @@ GATEWAY_TYPES = {
 
 MERGE_OUTPUT = 'out'
 
+SENTINEL = {'end': 'END', 'start': 'START'}
+
 DATA_TYPES = {
     'form': 'form'
 }

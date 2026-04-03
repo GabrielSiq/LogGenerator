@@ -5,7 +5,7 @@ from numpy import random
 class Duration:
     # Initialization and instance variables
     def __init__(self, distribution: Union[dict, int]) -> None:
-        if type(distribution) is dict:
+        if isinstance(distribution, dict):
             distribution = dict(distribution)
             self.type = distribution.pop('type').lower()
             self.parameters = distribution
@@ -26,9 +26,10 @@ class Duration:
         elif self.type == 'const':
             dur = int(self.parameters['value'])
         else:
-            dur = None
+            raise ValueError(f"Unknown distribution type '{self.type}'. "
+                             f"Supported: normal, uniform, triangular, beta, const.")
 
-        return max(0, dur) if dur is not None else None
+        return max(0, dur)
 
     # Private Methods
     def __repr__(self):
