@@ -26,7 +26,7 @@ class DataManager:
             return None
 
     def read_object(self, requirement: DataRequirement, process_id: str, process_instance_id: int) -> dict:
-        if requirement.fields is not None:
+        if requirement.fields is not None and requirement.fields:
             return {k: self.data_store[process_id][process_instance_id][requirement.id].get_fields()[k] for k in requirement.fields}
         return self.data_store[process_id][process_instance_id][requirement.id].get_fields()
 
