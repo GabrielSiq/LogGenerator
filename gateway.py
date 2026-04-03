@@ -1,6 +1,6 @@
 import importlib.util
 from numpy import random
-from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS
+from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS, ConfigurationError
 from typing import List, Dict
 
 RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules_function'])
@@ -13,8 +13,8 @@ class Gateway:
         self.name = name
         self.type = type
         if self.type == GATEWAY_TYPES['choice']:
+            self.is_rule_based = rule is not None
             if rule is not None:
-                self.type = GATEWAY_TYPES['rule']
                 self.decider = GateRule(gates, rule)
             elif distribution is not None:
                 self.decider = GateDistribution(gates, distribution)
@@ -22,9 +22,11 @@ class Gateway:
                 raise ValueError("For choice gateways, either rule or distribution must be present.")
             self.gates = gates
         elif self.type == GATEWAY_TYPES['parallel']:
+            self.is_rule_based = False
             self.decider = None
             self.gates = gates
         elif self.type == GATEWAY_TYPES['merge']:
+            self.is_rule_based = False
             self.merge_inputs = gates
             self.gates = [MERGE_OUTPUT]
         else:
@@ -35,10 +37,10 @@ class Gateway:
         if self.type == GATEWAY_TYPES['parallel'] or self.type == GATEWAY_TYPES['merge']:
             return self.gates
         elif self.type == GATEWAY_TYPES['choice']:
-            return [self.decider.get_gate()]
-        else:
-            # Rule
-            return [self.decider.get_gate(input_data)]
+            if self.is_rule_based:
+                return [self.decider.get_gate(input_data)]
+            else:
+                return [self.decider.get_gate()]
 
     def get_inputs(self) -> List[str]:
         if self.type == GATEWAY_TYPES['merge']:
@@ -53,7 +55,12 @@ class GateRule:
     # Initialization and instance variables
     def __init__(self, gates: List[str], rule: str) -> None:
         self.gates = gates
-        self.decision = getattr(RULE_MODULE, rule)
+        try:
+            self.decision = getattr(RULE_MODULE, rule)
+        except AttributeError:
+            raise ConfigurationError(
+                f"Gateway rule function '{rule}' not found in {DEFAULT_PATHS['rules_function']}."
+            )
 
     def get_gate(self, input_data: Dict[str, dict] = None) -> str:
         if input_data is not None:

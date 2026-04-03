@@ -23,7 +23,7 @@ class LogItem:
 
     # Private methods
     def __lt__(self, other: LogItem) -> bool:
-        return self.timestamp < other.timestamp or (self.timestamp == other.timestamp and self.process_id < self.process_id)
+        return self.timestamp < other.timestamp or (self.timestamp == other.timestamp and self.process_id < other.process_id)
 
 
 class LogWriter:

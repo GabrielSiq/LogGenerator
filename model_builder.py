@@ -11,7 +11,8 @@ from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
-# TODO: Implement XML validation.
+_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+_ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 
 class ModelBuilder:
@@ -22,6 +23,7 @@ class ModelBuilder:
         self.data_file = data_file
         self.models_file = models_file
         self.activities = dict()
+        self._resource_ref_map = self._build_resource_ref_map()
         activity_list = self.create_activities()
         self.activities = dict((act.id, act) for act in activity_list)
 
@@ -73,49 +75,19 @@ class ModelBuilder:
         except AttributeError:
             pass
 
-        duration_child = activity_child.find('Duration/')
+        duration_child = activity_child.find('Duration')
         distribution_child = activity_child.find('Duration/Distribution')
         if distribution_child is not None:
             fields['distribution'] = self._parse_distribution(distribution_child)
         elif duration_child is not None:
             fields['distribution'] = int(duration_child.text)
 
-        data_input = []
-        data_input_child = activity_child.find('DataInput')
-
-        if data_input_child is not None:
-            for data_object in data_input_child:
-                data = dict()
-                id = data_object.get('id')
-                if id is None:
-                    raise AttributeError('Missing data object id.')
-                data['id'] = id
-                if data_object.get('type') == 'form':
-                    fields_child = data_object.find('Fields')
-                    if fields_child is not None:
-                        data['fields'] = list()
-                        for field in fields_child:
-                            data['fields'].append(field.get('name'))
-                data_input.append(data)
+        data_input = self._parse_data_requirements(activity_child.find('DataInput'))
+        if data_input:
             fields['data_input'] = data_input
 
-        data_output = []
-        data_output_child = activity_child.find('DataOutput')
-
-        if data_output_child is not None:
-            for data_object in data_output_child:
-                data = dict()
-                id = data_object.get('id')
-                if id is None:
-                    raise AttributeError('Missing data object id.')
-                data['id'] = id
-                if data_object.get('type') == 'form':
-                    fields_child = data_object.find('Fields')
-                    if fields_child is not None:
-                        data['fields'] = list()
-                        for field in fields_child:
-                            data['fields'].append(field.get('name'))
-                data_output.append(data)
+        data_output = self._parse_data_requirements(activity_child.find('DataOutput'))
+        if data_output:
             fields['data_output'] = data_output
 
         resources = []
@@ -123,12 +95,18 @@ class ModelBuilder:
 
         if resources_child is not None:
             for resource in resources_child:
-                # TODO: Adapt for multi-resource.
                 try:
-                    res = resource.attrib
-                    res['qty'] = int(resource.text)
+                    ref = resource.get('ref')
+                    if ref is not None:
+                        if ref not in self._resource_ref_map:
+                            raise ValueError(f"Resource ref='{ref}' not found in resources.xml.")
+                        res = dict(self._resource_ref_map[ref])
+                        res['qty'] = int(resource.get('quantity', 1))
+                    else:
+                        res = dict(resource.attrib)
+                        res['qty'] = int(resource.text)
                     resources.append(res)
-                except AttributeError:
+                except (AttributeError, TypeError):
                     print('Poorly formatted resource')
             fields['resources'] = resources
 
@@ -183,24 +161,62 @@ class ModelBuilder:
         return res
 
     @staticmethod
+    def _parse_data_requirements(node) -> list:
+        if node is None:
+            return []
+        requirements = []
+        for data_object in node:
+            data = {}
+            id = data_object.get('id')
+            if id is None:
+                raise AttributeError('Missing data object id.')
+            data['id'] = id
+            if data_object.get('type') == 'form':
+                fields_child = data_object.find('Fields')
+                if fields_child is not None:
+                    data['fields'] = [field.get('name') for field in fields_child]
+            requirements.append(data)
+        return requirements
+
+    @staticmethod
     def _parse_distribution(distribution_child: ElementTree) -> Optional[dict]:
         if distribution_child is None:
             return None
         try:
-            attributes = distribution_child.attrib
-            [attributes.update({key: int(value)}) for key, value in attributes.items() if key != 'type']
-            return attributes
+            return {key: (int(value) if key != 'type' else value)
+                    for key, value in distribution_child.attrib.items()}
         except AttributeError:
             print('Poorly formatted duration.')
 
     @staticmethod
     def _parse_calendar(availability_child: ElementTree) -> dict:
-        calendar = dict()
+        calendar = {}
+        weekday_child = None
+        default_child = None
         for day in availability_child:
-            for block in day:
-                for time in range(int(block.get('start')), int(block.get('end'))):
-                    calendar.setdefault(day.tag, {})
-                    calendar[day.tag][time] = int(block.text) if block.text is not None else True
+            if day.tag == 'Weekday':
+                weekday_child = day
+            elif day.tag == 'Default':
+                default_child = day
+            else:
+                for block in day:
+                    for time in range(int(block.get('start')), int(block.get('end'))):
+                        calendar.setdefault(day.tag, {})
+                        calendar[day.tag][time] = int(block.text) if block.text is not None else True
+        if weekday_child is not None:
+            for day_name in _WEEKDAYS:
+                if day_name not in calendar:
+                    for block in weekday_child:
+                        for time in range(int(block.get('start')), int(block.get('end'))):
+                            calendar.setdefault(day_name, {})
+                            calendar[day_name][time] = int(block.text) if block.text is not None else True
+        if default_child is not None:
+            for day_name in _ALL_DAYS:
+                if day_name not in calendar:
+                    for block in default_child:
+                        for time in range(int(block.get('start')), int(block.get('end'))):
+                            calendar.setdefault(day_name, {})
+                            calendar[day_name][time] = int(block.text) if block.text is not None else True
         return calendar
 
     def _parse_process_model(self, model_child: ElementTree) -> Process:
@@ -304,16 +320,33 @@ class ModelBuilder:
             fields[field.get('name')] = field.text
         return name, fields
 
+    def _build_resource_ref_map(self) -> dict:
+        ref_map = {}
+        root = ElementTree.parse(self.resources_file).getroot()
+        for child in root:
+            if child.tag != FILE_ROOT['resources']:
+                continue
+            rid = child.get('id')
+            class_type = child.get('type')
+            if class_type == RESOURCE_TYPES['human']:
+                ref_map[rid] = {
+                    'class_type': class_type,
+                    'org': child.find('Organization').text,
+                    'dept': child.find('Department').text,
+                    'role': child.find('Role').text,
+                }
+            elif class_type == RESOURCE_TYPES['physical']:
+                ref_map[rid] = {
+                    'class_type': class_type,
+                    'type': child.find('Type').text,
+                }
+        return ref_map
+
     def _clone_activity(self, id: str) -> Optional[Activity]:
         if id not in self.activities:
             return None
         else:
             return deepcopy(self.activities[id])
-        pass
-
-
-
-
 
 
 

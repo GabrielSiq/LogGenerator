@@ -2,7 +2,7 @@ from __future__ import annotations
 import importlib
 from typing import Union
 import math
-from config import PRIORITY_VALUES, DEFAULT_PATHS
+from config import PRIORITY_VALUES, DEFAULT_PATHS, SENTINEL, ConfigurationError
 from data import DataRequirement
 from duration import Duration
 from failure import Failure
@@ -21,7 +21,16 @@ class Activity:
         self.duration = Duration(distribution)
         self.data_input = DataRequirement.from_list(data_input)
         self.data_output = DataRequirement.from_list(data_output)
-        self.process_data = getattr(DATA_MODULE, self.id) if data_output is not None else None
+        if data_output is not None:
+            try:
+                self.process_data = getattr(DATA_MODULE, self.id)
+            except AttributeError:
+                raise ConfigurationError(
+                    f"Activity '{self.id}' has DataOutput but no function '{self.id}' "
+                    f"found in {DEFAULT_PATHS['data_function']}."
+                )
+        else:
+            self.process_data = None
         self.resources = ResourceRequirement.from_list(resources)
         self.failure = Failure(failure_rate if failure_rate is not None else 0)
         self.retries = retries if retries is not None else 0
@@ -58,7 +67,7 @@ class Activity:
 
     @staticmethod
     def end() -> Activity:
-        return Activity("END", "END")
+        return Activity(SENTINEL['end'], SENTINEL['end'])
 
     # Private methods
     def __repr__(self):

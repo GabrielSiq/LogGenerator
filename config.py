@@ -34,6 +34,8 @@ GATEWAY_TYPES = {
 
 MERGE_OUTPUT = 'out'
 
+SENTINEL = {'end': 'END', 'start': 'START'}
+
 DATA_TYPES = {
     'form': 'form'
 }
@@ -58,3 +60,7 @@ FILE_ROOT = {
 SUPPORTED_FORMATS = {
     'json': 'json'
 }
+
+
+class ConfigurationError(Exception):
+    pass

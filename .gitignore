@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+
+# Test cache
+.pytest_cache/
+
+# Simulation output
+output/
+
+# Internal development docs
+CLAUDE.md
+ARCHITECTURE.md

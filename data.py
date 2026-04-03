@@ -114,6 +114,8 @@ class Form(DataObject):
         return self.fields[field_id]
 
     def set_field(self, field_id: str, field_value: Any) -> None:
+        if field_id not in self.fields:
+            raise KeyError(f"Unknown field '{field_id}' on form '{self.id}'.")
         self.fields[field_id] = field_value
 
 

@@ -1,11 +1,9 @@
 from __future__ import annotations
 from datetime import timedelta, datetime
 from heapq import heappush, heappop
-from random import sample
 from typing import List, Union, Tuple, Dict, Optional
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
-from functools import lru_cache
 
 
 class ResourceManager:
@@ -19,13 +17,23 @@ class ResourceManager:
                     self.human_resources[hr.id] = hr
             elif isinstance(resource, PhysicalResource):
                 self.physical_resources[resource.id] = resource
+        # Build role index: (org, dept, role) -> [resource_id, ...]
+        self._role_index = {}
+        for rid, r in self.human_resources.items():
+            key = (r.org, r.dept, r.role)
+            self._role_index.setdefault(key, []).append(rid)
 
     # Public methods
 
     def assign_resources(self, requirement_list: List[ResourceRequirement], process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
-        # TODO: Adapt for multi-resource case.
+        max_date = datetime.min
+        combined = {}
         for requirement in requirement_list:
-            return self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
+            date, assigned = self.assign_resource(requirement, process_id, process_instance_id, activity_id, activity_instance_id, start_time, duration)
+            if date > max_date:
+                max_date = date
+            combined.update(assigned)
+        return max_date, combined
 
     def assign_resource(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         if duration is None:
@@ -45,11 +53,14 @@ class ResourceManager:
     def get_available(self, requirement: ResourceRequirement, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
         return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
 
-    def when_available(self, requirement_list: List[ResourceRequirement], start_time: datetime = None, end_time: datetime = None) -> List[datetime]:
+    def when_available(self, requirement_list: List[ResourceRequirement], start_time: datetime = None, end_time: datetime = None) -> datetime:
         # TODO: Adapt for physical resources and multi-resource.
         requirement = requirement_list[0]
-        resources = self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=False, start_time=start_time, end_time=end_time, amount=requirement.quantity)
-        return sorted(resources, key=lambda x: x.when_available(start_time))[0].when_available(start_time)
+        key = (requirement.org, requirement.dept, requirement.role)
+        candidates = [self.human_resources[rid] for rid in self._role_index.get(key, [])]
+        if not candidates:
+            return start_time
+        return min(r.when_available(start_time) for r in candidates)
 
     # Private methods
     def _assign_human(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime, duration: int) -> Tuple[datetime, Dict[str, int]]:
@@ -65,7 +76,7 @@ class ResourceManager:
 
     def _assign_physical(self, requirement: ResourceRequirement, start_time: datetime = None, duration: int = None) -> Tuple[datetime, Dict[str, int]]:
         # Assigns any necessary number of physical resources to a process. Resources can be consumable or not.
-        available = self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration))
+        available = iter(self.get_available(requirement, start_time=start_time, end_time=start_time + timedelta(seconds=duration)))
         result = {}
         left = requirement.quantity
         while left > 0:
@@ -92,28 +103,22 @@ class ResourceManager:
             raise ValueError("Resource type %s not supported." % type)
 
     def _search_physical(self, type: str, start_time: datetime, amount: int, available: bool = None) -> List[Resource]:
-        result = []
+        scored = []
         for id, resource in self.physical_resources.items():
-            if resource.type == type and (available is None or (available is True and resource.check_free(start_time, amount) > 0) or (available is False and resource.check_free(start_time, amount) == 0)):
-                result.append(resource)
-        return sorted(result, key=lambda x: x.check_free(start_time, amount), reverse=True)
+            if resource.type == type:
+                free = resource.check_free(start_time, amount)
+                if available is None or (available is True and free > 0) or (available is False and free == 0):
+                    scored.append((free, resource))
+        return [r for _, r in sorted(scored, key=lambda x: x[0], reverse=True)]
 
     def _search_human(self, org: str, dept: str, role: str, available: bool = None, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
+        key = (org, dept, role)
         result = []
-        all = self._search_all_human(org, dept, role)
-        for resource in sample(all, len(all)):
+        for rid in self._role_index.get(key, []):
+            resource = self.human_resources[rid]
             if available is None or resource.is_available(start_time) == available:
                 result.append(resource)
         return sorted(result, key=lambda x: x.available_until(start_time, end_time), reverse=True)
-
-    @lru_cache(maxsize=128)
-    def _search_all_human(self, org: str, dept: str, role: str):
-        result = []
-        for id, resource in self.human_resources.items():
-            if (role is None or resource.role == role) and (
-                    dept is None or resource.dept == dept) and org is not None and resource.org == org:
-                result.append(resource)
-        return result
 
 
 class ResourceRequirement:
@@ -250,20 +255,19 @@ class PhysicalResource(Resource):
 
     def check_free(self, start_time: datetime, amount: int, free: bool = False) -> int:
         # Checks the amount of free resources at a specific time, up to a certain maximum amount desired. If free is True, also free the resources for use.
-        next = heappop(self.busy) # Gets the first batch of resources to become free
         refund = 0 # sometimes we don't need to free the entire batch, only a bit
         current = self.get_quantity() # the amount currently in stock
         needed = amount - current # how much we need to free to satisfy the requirement
         used = []
-        while next is not None and next[0] <= start_time and needed > 0:
+        while self.busy and needed > 0:
             # Until we're out of resources to free, reach a resource that won't be available at our start time and still need to free more resources, go through resources counting how much we can free.
-            used.append(next)
-            refund = next[1] - min(next[1], needed)
-            needed -= min(next[1], needed)
-            next = heappop(self.busy)
-        if next is not None:
-            # Add the unused item back to the pile.
-            heappush(self.busy, next)
+            next_item = heappop(self.busy)
+            if next_item[0] > start_time:
+                heappush(self.busy, next_item)
+                break
+            used.append(next_item)
+            refund = next_item[1] - min(next_item[1], needed)
+            needed -= min(next_item[1], needed)
         if needed > 0 or free is False:
             # If we aren't able to reach what we need or we don't want to free the resources, push them back into the pile.
             for item in used:

@@ -5,9 +5,9 @@ from numpy import random
 class Duration:
     # Initialization and instance variables
     def __init__(self, distribution: Union[dict, int]) -> None:
-        if type(distribution) is dict:
-            self.type = distribution['type'].lower()
-            distribution.pop('type')
+        if isinstance(distribution, dict):
+            distribution = dict(distribution)
+            self.type = distribution.pop('type').lower()
             self.parameters = distribution
         else:
             self.type = 'const'
@@ -16,19 +16,20 @@ class Duration:
     # Public methods
     def generate(self) -> Optional[int]:
         if self.type == 'normal':
-            dur = int(random.normal(loc=self.parameters['mean'], scale=self.parameters['std']))
+            dur = round(random.normal(loc=self.parameters['mean'], scale=self.parameters['std']))
         elif self.type == 'uniform':
-            dur = int(random.uniform(low=self.parameters['low'], high=self.parameters['high']))
+            dur = round(random.uniform(low=self.parameters['low'], high=self.parameters['high']))
         elif self.type == 'triangular':
-            dur = int(random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right']))
+            dur = round(random.triangular(left=self.parameters['left'], mode=self.parameters['mode'], right=self.parameters['right']))
         elif self.type == 'beta':
-            dur = int(random.beta(a=self.parameters['a'], b=self.parameters['b']))
+            dur = round(random.beta(a=self.parameters['a'], b=self.parameters['b']))
         elif self.type == 'const':
             dur = int(self.parameters['value'])
         else:
-            dur = None
+            raise ValueError(f"Unknown distribution type '{self.type}'. "
+                             f"Supported: normal, uniform, triangular, beta, const.")
 
-        return max(0, dur) if dur is not None else None
+        return max(0, dur)
 
     # Private Methods
     def __repr__(self):
