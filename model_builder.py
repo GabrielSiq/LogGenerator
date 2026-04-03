@@ -73,49 +73,19 @@ class ModelBuilder:
         except AttributeError:
             pass
 
-        duration_child = activity_child.find('Duration/')
+        duration_child = activity_child.find('Duration')
         distribution_child = activity_child.find('Duration/Distribution')
         if distribution_child is not None:
             fields['distribution'] = self._parse_distribution(distribution_child)
         elif duration_child is not None:
             fields['distribution'] = int(duration_child.text)
 
-        data_input = []
-        data_input_child = activity_child.find('DataInput')
-
-        if data_input_child is not None:
-            for data_object in data_input_child:
-                data = dict()
-                id = data_object.get('id')
-                if id is None:
-                    raise AttributeError('Missing data object id.')
-                data['id'] = id
-                if data_object.get('type') == 'form':
-                    fields_child = data_object.find('Fields')
-                    if fields_child is not None:
-                        data['fields'] = list()
-                        for field in fields_child:
-                            data['fields'].append(field.get('name'))
-                data_input.append(data)
+        data_input = self._parse_data_requirements(activity_child.find('DataInput'))
+        if data_input:
             fields['data_input'] = data_input
 
-        data_output = []
-        data_output_child = activity_child.find('DataOutput')
-
-        if data_output_child is not None:
-            for data_object in data_output_child:
-                data = dict()
-                id = data_object.get('id')
-                if id is None:
-                    raise AttributeError('Missing data object id.')
-                data['id'] = id
-                if data_object.get('type') == 'form':
-                    fields_child = data_object.find('Fields')
-                    if fields_child is not None:
-                        data['fields'] = list()
-                        for field in fields_child:
-                            data['fields'].append(field.get('name'))
-                data_output.append(data)
+        data_output = self._parse_data_requirements(activity_child.find('DataOutput'))
+        if data_output:
             fields['data_output'] = data_output
 
         resources = []
@@ -183,13 +153,30 @@ class ModelBuilder:
         return res
 
     @staticmethod
+    def _parse_data_requirements(node) -> list:
+        if node is None:
+            return []
+        requirements = []
+        for data_object in node:
+            data = {}
+            id = data_object.get('id')
+            if id is None:
+                raise AttributeError('Missing data object id.')
+            data['id'] = id
+            if data_object.get('type') == 'form':
+                fields_child = data_object.find('Fields')
+                if fields_child is not None:
+                    data['fields'] = [field.get('name') for field in fields_child]
+            requirements.append(data)
+        return requirements
+
+    @staticmethod
     def _parse_distribution(distribution_child: ElementTree) -> Optional[dict]:
         if distribution_child is None:
             return None
         try:
-            attributes = distribution_child.attrib
-            [attributes.update({key: int(value)}) for key, value in attributes.items() if key != 'type']
-            return attributes
+            return {key: (int(value) if key != 'type' else value)
+                    for key, value in distribution_child.attrib.items()}
         except AttributeError:
             print('Poorly formatted duration.')
 
@@ -309,11 +296,6 @@ class ModelBuilder:
             return None
         else:
             return deepcopy(self.activities[id])
-        pass
-
-
-
-
 
 
 

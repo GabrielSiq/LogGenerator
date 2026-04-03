@@ -124,7 +124,7 @@ This deep-copies the data snapshot on **every** activity execution. For large fo
 
 ### 3.2 Code Clarity & Architecture
 
-#### 3.2.1 — Decompose `_simulate_activity()`
+#### 3.2.1 — Decompose `_simulate_activity()` ✅ Fixed
 
 This is a 73-line function with a `# TODO: Refactor this function.` comment at line 53. It handles resource allocation, failure, timeout, data processing, logging, and successor queuing all in one place with 4 levels of nesting.
 
@@ -148,7 +148,7 @@ Each sub-function is testable in isolation.
 
 ---
 
-#### 3.2.2 — Fix `QueueItem` Mutation Pattern
+#### 3.2.2 — Fix `QueueItem` Mutation Pattern ✅ Fixed
 
 `repeat()`, `leftover()`, and `postpone()` mutate `self` and return `self`. This looks like a builder pattern but isn't — the caller must immediately push the returned value to the queue. If they don't, mutations accumulate silently.
 
@@ -158,7 +158,7 @@ Each sub-function is testable in isolation.
 
 ---
 
-#### 3.2.3 — Fix `QueueItem.__lt__` Ordering
+#### 3.2.3 — Fix `QueueItem.__lt__` Ordering ✅ Fixed
 
 ```python
 # Current — when priorities equal AND process_ids equal:
@@ -206,7 +206,7 @@ Replace all string literals.
 
 ---
 
-#### 3.2.7 — `model_builder.py` Cleanup
+#### 3.2.7 — `model_builder.py` Cleanup ✅ Fixed
 
 - Remove the list comprehension used purely for side effects (line 191): `[attributes.update(...) for ...]` → use a `for` loop
 - Fix the suspicious `'Duration/'` XPath (line 76) — trailing slash is not standard
@@ -386,13 +386,13 @@ The paper suggests importing BPMN-compliant files from other tools. Lower priori
 3. ✅ Per-resource-type wait queues in `SimulationManager`
 4. ✅ Eliminate hot-path `deepcopy`
 
-### Phase 3 — Code Clarity (in progress)
-1. Decompose `_simulate_activity()` into sub-functions
-2. `QueueItem` immutable mutation methods
-3. Fix `QueueItem.__lt__` and document intent
+### Phase 3 — Code Clarity ✅ Complete
+1. ✅ Decompose `_simulate_activity()` into sub-functions
+2. ✅ `QueueItem` immutable mutation methods; remove dead `postpone()`
+3. ✅ Fix `QueueItem.__lt__` ordering and document intent
 4. ✅ Fix gateway type mutation
 5. ✅ Eliminate magic `"END"` / `"START"` strings
-6. ✅ `duration.py` cleanup — `model_builder.py` cleanup still pending
+6. ✅ `duration.py` and `model_builder.py` cleanup
 
 ### Phase 4 — Modeling Ergonomics (XML)
 1. Transition delay default (zero if omitted)
