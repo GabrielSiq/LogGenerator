@@ -1,6 +1,6 @@
 import time
 from activity import Activity
-from config import DAYS, RESOURCE_TYPES
+from config import DAYS, RESOURCE_TYPES, ConfigurationError
 from gateway import Gateway
 from log import LogWriter, LogItem
 from model_builder import ModelBuilder
@@ -118,8 +118,13 @@ class SimulationManager:
         output = None
         if activity.data_output is not None:
             output = activity.process_data(data)
-            for id, fields in output.items():
-                self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
+            for obj_id, fields in output.items():
+                try:
+                    self.dm.update_object(obj_id, item.process_id, item.process_instance_id, fields)
+                except KeyError as e:
+                    raise ConfigurationError(
+                        f"Data function '{activity.id}' returned unknown object or field: {e}."
+                    ) from e
         if assigned:
             self._wake_waiting_for(assigned, end_time)
         if duration > timeout:

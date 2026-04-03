@@ -74,7 +74,7 @@ class QueueItem:
             return True
         elif self.start == other.start:
             # If they have same start date, we check priority and process instance id
-            if self.priority < other.priority:
+            if self.priority > other.priority:
                 return True
             elif self.priority == other.priority and self.process_id == other.process_id and self.process_instance_id < other.process_instance_id:
                 # Older instances (lower ID) take priority over newer ones of the same process

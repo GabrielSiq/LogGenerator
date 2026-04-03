@@ -255,20 +255,19 @@ class PhysicalResource(Resource):
 
     def check_free(self, start_time: datetime, amount: int, free: bool = False) -> int:
         # Checks the amount of free resources at a specific time, up to a certain maximum amount desired. If free is True, also free the resources for use.
-        next = heappop(self.busy) # Gets the first batch of resources to become free
         refund = 0 # sometimes we don't need to free the entire batch, only a bit
         current = self.get_quantity() # the amount currently in stock
         needed = amount - current # how much we need to free to satisfy the requirement
         used = []
-        while next is not None and next[0] <= start_time and needed > 0:
+        while self.busy and needed > 0:
             # Until we're out of resources to free, reach a resource that won't be available at our start time and still need to free more resources, go through resources counting how much we can free.
-            used.append(next)
-            refund = next[1] - min(next[1], needed)
-            needed -= min(next[1], needed)
-            next = heappop(self.busy)
-        if next is not None:
-            # Add the unused item back to the pile.
-            heappush(self.busy, next)
+            next_item = heappop(self.busy)
+            if next_item[0] > start_time:
+                heappush(self.busy, next_item)
+                break
+            used.append(next_item)
+            refund = next_item[1] - min(next_item[1], needed)
+            needed -= min(next_item[1], needed)
         if needed > 0 or free is False:
             # If we aren't able to reach what we need or we don't want to free the resources, push them back into the pile.
             for item in used:
