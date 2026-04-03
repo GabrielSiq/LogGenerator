@@ -36,6 +36,7 @@ class Process:
         self.activities = activities
         self.gateways = dict((gate.id, gate) for gate in gateways)
         self.transitions = transitions
+        self._transition_index = {(t.source, t.source_gate): t for t in self.transitions}
         self.data_objects = data_objects if isinstance(data_objects[0], DataRequirement)else DataRequirement.from_list(data_objects)
         self.instance = 0
 
@@ -57,19 +58,18 @@ class Process:
 
     def get_next(self, source: str, gate: str = None) -> Union[Tuple[Activity, None, int], Tuple[Gateway, str, int], Tuple[None, None, None]]:
         # returns next activity or gateway id and the delay of the transition
-        # For list structure
-        for transition in self.transitions:
-            if transition.source == source and (gate is None or transition.source_gate == gate):
-                (act, gate, delay) = transition.get_next()
-                if act in self.activities:
-                    return self.activities[act], None, delay
-                elif act in self.gateways:
-                    return self.gateways[act], gate, delay
-                elif act == "END":
-                    return None, None, None
-                else:
-                    raise ValueError(f"Activity or gateway {act} can't be found")
-        return None, None, None
+        t = self._transition_index.get((source, gate))
+        if t is None:
+            return None, None, None
+        act, gate, delay = t.get_next()
+        if act in self.activities:
+            return self.activities[act], None, delay
+        elif act in self.gateways:
+            return self.gateways[act], gate, delay
+        elif act == "END":
+            return None, None, None
+        else:
+            raise ValueError(f"Activity or gateway {act} can't be found")
 
     # Private methods
     def __repr__(self):

@@ -1,11 +1,9 @@
 from __future__ import annotations
 from datetime import timedelta, datetime
 from heapq import heappush, heappop
-from random import sample
 from typing import List, Union, Tuple, Dict, Optional
 from config import RESOURCE_TYPES, DAYS
 from duration import Duration
-from functools import lru_cache
 
 
 class ResourceManager:
@@ -19,6 +17,11 @@ class ResourceManager:
                     self.human_resources[hr.id] = hr
             elif isinstance(resource, PhysicalResource):
                 self.physical_resources[resource.id] = resource
+        # Build role index: (org, dept, role) -> [resource_id, ...]
+        self._role_index = {}
+        for rid, r in self.human_resources.items():
+            key = (r.org, r.dept, r.role)
+            self._role_index.setdefault(key, []).append(rid)
 
     # Public methods
 
@@ -50,11 +53,14 @@ class ResourceManager:
     def get_available(self, requirement: ResourceRequirement, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
         return self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=True, start_time=start_time, end_time=end_time, amount=requirement.quantity)
 
-    def when_available(self, requirement_list: List[ResourceRequirement], start_time: datetime = None, end_time: datetime = None) -> List[datetime]:
+    def when_available(self, requirement_list: List[ResourceRequirement], start_time: datetime = None, end_time: datetime = None) -> datetime:
         # TODO: Adapt for physical resources and multi-resource.
         requirement = requirement_list[0]
-        resources = self._search(requirement.class_type, org=requirement.org, dept=requirement.dept, role=requirement.role, physical_type=requirement.physical_type, available=False, start_time=start_time, end_time=end_time, amount=requirement.quantity)
-        return sorted(resources, key=lambda x: x.when_available(start_time))[0].when_available(start_time)
+        key = (requirement.org, requirement.dept, requirement.role)
+        candidates = [self.human_resources[rid] for rid in self._role_index.get(key, [])]
+        if not candidates:
+            return start_time
+        return min(r.when_available(start_time) for r in candidates)
 
     # Private methods
     def _assign_human(self, requirement: ResourceRequirement, process_id: str, process_instance_id: int, activity_id: str, activity_instance_id: int, start_time: datetime, duration: int) -> Tuple[datetime, Dict[str, int]]:
@@ -106,21 +112,13 @@ class ResourceManager:
         return [r for _, r in sorted(scored, key=lambda x: x[0], reverse=True)]
 
     def _search_human(self, org: str, dept: str, role: str, available: bool = None, start_time: datetime = None, end_time: datetime = None) -> List[Resource]:
+        key = (org, dept, role)
         result = []
-        all = self._search_all_human(org, dept, role)
-        for resource in sample(all, len(all)):
+        for rid in self._role_index.get(key, []):
+            resource = self.human_resources[rid]
             if available is None or resource.is_available(start_time) == available:
                 result.append(resource)
         return sorted(result, key=lambda x: x.available_until(start_time, end_time), reverse=True)
-
-    @lru_cache(maxsize=128)
-    def _search_all_human(self, org: str, dept: str, role: str):
-        result = []
-        for id, resource in self.human_resources.items():
-            if (role is None or resource.role == role) and (
-                    dept is None or resource.dept == dept) and org is not None and resource.org == org:
-                result.append(resource)
-        return result
 
 
 class ResourceRequirement:

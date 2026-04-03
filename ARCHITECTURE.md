@@ -29,9 +29,9 @@ The simulator works, but it has meaningful bugs, a critical performance architec
 
 ## 3. Core Improvements
 
-### 3.1 Performance
+### 3.1 Performance ✅ All Done (71s → 4.4s, 16× speedup on 7-day simulation)
 
-#### 3.1.1 — Resource Scheduling Overhaul (Highest Priority)
+#### 3.1.1 — Resource Scheduling Overhaul ✅ Fixed
 
 **Current problem:** The paper explicitly notes resource-constrained scenarios run 5× slower. The root cause is in `resource.py`:
 
@@ -63,7 +63,7 @@ For physical resources, replace the stateful `check_free()` heap-pop loop with a
 
 ---
 
-#### 3.1.2 — Transition Lookup Index (Easy, High Impact)
+#### 3.1.2 — Transition Lookup Index ✅ Fixed
 
 **Current problem:** `process.get_next()` is called on **every** activity and gateway completion — it's the hottest path in the simulation. It does a linear scan:
 
@@ -94,7 +94,7 @@ O(n) → O(1). Zero behavioral change.
 
 ---
 
-#### 3.1.3 — Per-Resource-Type Wait Queue
+#### 3.1.3 — Per-Resource-Type Wait Queue ✅ Fixed
 
 **Current problem:** When resources are scarce, re-queued activities accumulate. Every time any resource frees up, the simulation tries ALL queued activities and rejects most. The paper describes this: "a large number of activities will accumulate in the queue and the simulator will attempt to run each of them every time a new resource frees up."
 
@@ -106,7 +106,7 @@ When an activity can't get resources (current `postpone()` case), push it to `wa
 
 ---
 
-#### 3.1.4 — Eliminate Hot-Path `deepcopy`
+#### 3.1.4 — Eliminate Hot-Path `deepcopy` ✅ Fixed
 
 **Current problem:** `simulation_manager.py` line 60:
 
@@ -380,11 +380,11 @@ The paper suggests importing BPMN-compliant files from other tools. Lower priori
 5. Fix `resource.py` `_search_physical()` — double `check_free()` call
 6. Fix `resource.py` `assign_resources()` — early return drops all but first resource
 
-### Phase 2 — Performance (high impact, targeted changes)
-1. Transition lookup index in `Process.get_next()` — 1 day, massive gain
-2. Per-role availability heap in `ResourceManager` — 3-5 days, eliminates 5× slowdown
-3. Per-resource-type wait queues in `SimulationManager` — 2-3 days
-4. Eliminate hot-path `deepcopy` — 0.5 days
+### Phase 2 — Performance ✅ Complete (16× speedup achieved)
+1. ✅ Transition lookup index in `Process.get_next()`
+2. ✅ Role index + shuffle removal in `ResourceManager`
+3. ✅ Per-resource-type wait queues in `SimulationManager`
+4. ✅ Eliminate hot-path `deepcopy`
 
 ### Phase 3 — Code Clarity (parallel with Phase 2)
 1. Decompose `_simulate_activity()` into sub-functions

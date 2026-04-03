@@ -1,7 +1,6 @@
-import copy
 import time
 from activity import Activity
-from config import DAYS
+from config import DAYS, RESOURCE_TYPES
 from gateway import Gateway
 from log import LogWriter, LogItem
 from model_builder import ModelBuilder
@@ -24,6 +23,7 @@ class SimulationManager:
         self.log_queue = PriorityQueue()
         self.pending_merges = dict()
         self.running_processes = dict()
+        self._waiting_queues = {}  # dict[tuple, PriorityQueue] keyed by (org, dept, role) or ('physical', type)
 
     # Public methods
     def simulate(self, name=None, resource_limit=None):
@@ -57,21 +57,24 @@ class SimulationManager:
         max_duration = min(duration, timeout)
         # data is read at the beginning and written at the end.
         data = self.dm.read_requirements(item.process_id, item.process_instance_id, requirements_list=activity.data_input) if item.data is None else item.data
-        input = copy.deepcopy(data)
+        input = {k: dict(v) for k, v in data.items()} if data is not None else None
         # TODO: Adapt for physical resources.
         assigned = None
         if activity.resources is not None:
             date, assigned = self.rm.assign_resources(activity.resources, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id, start_time=item.start, duration=max_duration)
             if date < item.start + timedelta(seconds=max_duration):
                 if not assigned:
-                    # When there are no resources available. Register the occurence and try again when next resource is available.
-                    new_start = self.rm.when_available(activity.resources, item.start, item.start + timedelta(seconds=max_duration))
+                    # No resources available — park in role-specific wait queue instead of main queue.
                     if not item.waiting:
                         self.log_queue.push(
                             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id,
                                     item.element_instance_id,
                                     'waiting_resource'))
-                    self._push_to_execution(item.postpone(new_start))
+                    role_key = self._resource_key(activity.resources[0])
+                    if role_key not in self._waiting_queues:
+                        self._waiting_queues[role_key] = PriorityQueue()
+                    item.waiting = True
+                    self._waiting_queues[role_key].push(item)
                     return
                 else:
                     # resources were assigned but weren't enough to complete the activity. create a log and push back into queue with new duration when we finish this execution.
@@ -83,6 +86,7 @@ class SimulationManager:
                         LogItem(date, item.process_id, item.process_instance_id,
                                 item.element_id, item.element_instance_id,
                                 'pause_activity', resource=assigned))
+                    self._wake_waiting_for(assigned, date)
                     self._push_to_execution(item.leftover(duration, (date - item.start).total_seconds(), data))
                     return
 
@@ -90,13 +94,16 @@ class SimulationManager:
             LogItem(item.start, item.process_id, item.process_instance_id, item.element_id, item.element_instance_id,
                     'start_activity', resource=assigned, data_input=input))
 
+        end_time = item.start + timedelta(seconds=max_duration)
         # Failed
         if activity.failure.check_failure():
             # Failed
             self.log_queue.push(
-                LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                LogItem(end_time, item.process_id, item.process_instance_id,
                         item.element_id, item.element_instance_id,
                         'failed', resource=assigned))
+            if assigned:
+                self._wake_waiting_for(assigned, end_time)
             if item.attempt < activity.retries:
                 self._push_to_execution(item.repeat(max_duration + 1))
         else:
@@ -108,20 +115,47 @@ class SimulationManager:
                 output = activity.process_data(data)
                 for id, fields in output.items():
                     self.dm.update_object(id, item.process_id, item.process_instance_id, fields)
+            if assigned:
+                self._wake_waiting_for(assigned, end_time)
             if duration > timeout:
                 self.log_queue.push(
-                    LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                    LogItem(end_time, item.process_id, item.process_instance_id,
                             item.element_id, item.element_instance_id,
                             'timeout', resource=assigned))
             else:
                 self.log_queue.push(
-                    LogItem(item.start + timedelta(seconds=max_duration), item.process_id, item.process_instance_id,
+                    LogItem(end_time, item.process_id, item.process_instance_id,
                             item.element_id, item.element_instance_id,
                             'end_activity', resource=assigned, data_output=output))
                 # add next to queue
                 element, gate, delay = item.running_process.process_reference.get_next(source=activity.id)
                 if element is not None:
                     self._push_to_execution(item.successor(element, duration=duration, delay=delay), current_gate=gate)
+
+    def _resource_key(self, requirement) -> tuple:
+        if requirement.class_type == RESOURCE_TYPES['human']:
+            return (requirement.org, requirement.dept, requirement.role)
+        else:
+            return ('physical', requirement.physical_type)
+
+    def _wake_waiting_for(self, assigned: dict, new_start: datetime) -> None:
+        # Find role keys for all freed resources and re-queue any parked waiting items.
+        role_keys = set()
+        for rid in assigned:
+            if rid in self.rm.human_resources:
+                r = self.rm.human_resources[rid]
+                role_keys.add((r.org, r.dept, r.role))
+            elif rid in self.rm.physical_resources:
+                r = self.rm.physical_resources[rid]
+                role_keys.add(('physical', r.type))
+        for key in role_keys:
+            if key in self._waiting_queues:
+                q = self._waiting_queues[key]
+                while not q.is_empty():
+                    waiting_item = q.pop()
+                    waiting_item.start = new_start
+                    waiting_item.waiting = False
+                    self.execution_queue.push(waiting_item)
 
     def _simulate_gateway(self, item: QueueItem) -> None:
         gateway = item.element
