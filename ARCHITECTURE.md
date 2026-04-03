@@ -171,7 +171,7 @@ The intent (from the paper): older instances (lower ID, having waited longer) sh
 
 ---
 
-#### 3.2.4 — Gateway Type Mutation
+#### 3.2.4 — Gateway Type Mutation ✅ Fixed
 
 In `gateway.py`, a gateway initialized as `type='choice'` silently has its type changed to `'rule'` during `__init__` if a rule function is present. This means the type stored on the object doesn't match what was specified in XML, and code that branches on `gateway.type` must know about this implicit aliasing.
 
@@ -181,7 +181,7 @@ In `gateway.py`, a gateway initialized as `type='choice'` silently has its type 
 
 ---
 
-#### 3.2.5 — Eliminate Magic Strings
+#### 3.2.5 — Eliminate Magic Strings ✅ Fixed
 
 `"END"` appears as a hardcoded string in `activity.py`, `process.py`, `model_builder.py`, and `simulation_manager.py`. Any typo silently breaks process termination.
 
@@ -195,7 +195,7 @@ Replace all string literals.
 
 ---
 
-#### 3.2.6 — `duration.py` Cleanup
+#### 3.2.6 — `duration.py` Cleanup ✅ Fixed
 
 - `isinstance(distribution, dict)` instead of `type(distribution) is dict`
 - Don't mutate the input dict (bug #4 above also)
@@ -386,13 +386,13 @@ The paper suggests importing BPMN-compliant files from other tools. Lower priori
 3. ✅ Per-resource-type wait queues in `SimulationManager`
 4. ✅ Eliminate hot-path `deepcopy`
 
-### Phase 3 — Code Clarity (parallel with Phase 2)
+### Phase 3 — Code Clarity (in progress)
 1. Decompose `_simulate_activity()` into sub-functions
 2. `QueueItem` immutable mutation methods
 3. Fix `QueueItem.__lt__` and document intent
-4. Fix gateway type mutation
-5. Eliminate magic `"END"` / `"START"` strings
-6. `duration.py` and `model_builder.py` cleanup
+4. ✅ Fix gateway type mutation
+5. ✅ Eliminate magic `"END"` / `"START"` strings
+6. ✅ `duration.py` cleanup — `model_builder.py` cleanup still pending
 
 ### Phase 4 — Modeling Ergonomics (XML)
 1. Transition delay default (zero if omitted)
