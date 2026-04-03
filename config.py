@@ -60,3 +60,7 @@ FILE_ROOT = {
 SUPPORTED_FORMATS = {
     'json': 'json'
 }
+
+
+class ConfigurationError(Exception):
+    pass

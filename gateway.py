@@ -1,6 +1,6 @@
 import importlib.util
 from numpy import random
-from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS
+from config import GATEWAY_TYPES, MERGE_OUTPUT, DEFAULT_PATHS, ConfigurationError
 from typing import List, Dict
 
 RULE_MODULE = importlib.import_module(DEFAULT_PATHS['rules_function'])
@@ -55,7 +55,12 @@ class GateRule:
     # Initialization and instance variables
     def __init__(self, gates: List[str], rule: str) -> None:
         self.gates = gates
-        self.decision = getattr(RULE_MODULE, rule)
+        try:
+            self.decision = getattr(RULE_MODULE, rule)
+        except AttributeError:
+            raise ConfigurationError(
+                f"Gateway rule function '{rule}' not found in {DEFAULT_PATHS['rules_function']}."
+            )
 
     def get_gate(self, input_data: Dict[str, dict] = None) -> str:
         if input_data is not None:

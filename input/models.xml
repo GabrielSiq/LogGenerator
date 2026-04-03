@@ -2,41 +2,11 @@
 	<Model id='triage'>
 		<Name>Ticket Triage</Name>
 		<ArrivalRate>
-			<Mon>
+			<Default>
 				<TimeBlock start="0" end="6">5</TimeBlock>
 				<TimeBlock start="6" end="18">12</TimeBlock>
 				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sun>
+			</Default>
 		</ArrivalRate>
 		<Activities>
 			<Activity id="read">
@@ -152,41 +122,11 @@
 	<Model id="support">
 		<Name>Support Case</Name>
 		<ArrivalRate>
-			<Mon>
+			<Default>
 				<TimeBlock start="0" end="6">3</TimeBlock>
 				<TimeBlock start="6" end="18">8</TimeBlock>
 				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">3</TimeBlock>
-				<TimeBlock start="6" end="18">8</TimeBlock>
-				<TimeBlock start="18" end="24">4</TimeBlock>
-			</Sun>
+			</Default>
 		</ArrivalRate>
 		<Activities>
 			<Activity id="read"/>
@@ -306,41 +246,11 @@
 	<Model id="trust">
 		<Name>Trust Case</Name>
 		<ArrivalRate>
-			<Mon>
+			<Default>
 				<TimeBlock start="0" end="6">1</TimeBlock>
 				<TimeBlock start="6" end="18">3</TimeBlock>
 				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">1</TimeBlock>
-				<TimeBlock start="6" end="18">3</TimeBlock>
-				<TimeBlock start="18" end="24">2</TimeBlock>
-			</Sun>
+			</Default>
 		</ArrivalRate>
 		<Activities>
 			<Activity id="read">
@@ -446,41 +356,11 @@
 	<Model id="data_collection">
 		<Name>Data Collection</Name>
 		<ArrivalRate>
-			<Mon>
+			<Default>
 				<TimeBlock start="0" end="6">5</TimeBlock>
 				<TimeBlock start="6" end="18">12</TimeBlock>
 				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Mon>
-			<Tue>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Tue>
-			<Wed>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Wed>
-			<Thu>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Thu>
-			<Fri>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Fri>
-			<Sat>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sat>
-			<Sun>
-				<TimeBlock start="0" end="6">5</TimeBlock>
-				<TimeBlock start="6" end="18">12</TimeBlock>
-				<TimeBlock start="18" end="24">6</TimeBlock>
-			</Sun>
+			</Default>
 		</ArrivalRate>
 		<Activities>
 			<Activity id="read"/>

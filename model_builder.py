@@ -11,7 +11,8 @@ from xml.etree import ElementTree
 from collections import OrderedDict
 from copy import deepcopy
 
-# TODO: Implement XML validation.
+_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+_ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 
 class ModelBuilder:
@@ -22,6 +23,7 @@ class ModelBuilder:
         self.data_file = data_file
         self.models_file = models_file
         self.activities = dict()
+        self._resource_ref_map = self._build_resource_ref_map()
         activity_list = self.create_activities()
         self.activities = dict((act.id, act) for act in activity_list)
 
@@ -93,12 +95,18 @@ class ModelBuilder:
 
         if resources_child is not None:
             for resource in resources_child:
-                # TODO: Adapt for multi-resource.
                 try:
-                    res = resource.attrib
-                    res['qty'] = int(resource.text)
+                    ref = resource.get('ref')
+                    if ref is not None:
+                        if ref not in self._resource_ref_map:
+                            raise ValueError(f"Resource ref='{ref}' not found in resources.xml.")
+                        res = dict(self._resource_ref_map[ref])
+                        res['qty'] = int(resource.get('quantity', 1))
+                    else:
+                        res = dict(resource.attrib)
+                        res['qty'] = int(resource.text)
                     resources.append(res)
-                except AttributeError:
+                except (AttributeError, TypeError):
                     print('Poorly formatted resource')
             fields['resources'] = resources
 
@@ -182,12 +190,33 @@ class ModelBuilder:
 
     @staticmethod
     def _parse_calendar(availability_child: ElementTree) -> dict:
-        calendar = dict()
+        calendar = {}
+        weekday_child = None
+        default_child = None
         for day in availability_child:
-            for block in day:
-                for time in range(int(block.get('start')), int(block.get('end'))):
-                    calendar.setdefault(day.tag, {})
-                    calendar[day.tag][time] = int(block.text) if block.text is not None else True
+            if day.tag == 'Weekday':
+                weekday_child = day
+            elif day.tag == 'Default':
+                default_child = day
+            else:
+                for block in day:
+                    for time in range(int(block.get('start')), int(block.get('end'))):
+                        calendar.setdefault(day.tag, {})
+                        calendar[day.tag][time] = int(block.text) if block.text is not None else True
+        if weekday_child is not None:
+            for day_name in _WEEKDAYS:
+                if day_name not in calendar:
+                    for block in weekday_child:
+                        for time in range(int(block.get('start')), int(block.get('end'))):
+                            calendar.setdefault(day_name, {})
+                            calendar[day_name][time] = int(block.text) if block.text is not None else True
+        if default_child is not None:
+            for day_name in _ALL_DAYS:
+                if day_name not in calendar:
+                    for block in default_child:
+                        for time in range(int(block.get('start')), int(block.get('end'))):
+                            calendar.setdefault(day_name, {})
+                            calendar[day_name][time] = int(block.text) if block.text is not None else True
         return calendar
 
     def _parse_process_model(self, model_child: ElementTree) -> Process:
@@ -290,6 +319,28 @@ class ModelBuilder:
         for field in form_child.find('Fields'):
             fields[field.get('name')] = field.text
         return name, fields
+
+    def _build_resource_ref_map(self) -> dict:
+        ref_map = {}
+        root = ElementTree.parse(self.resources_file).getroot()
+        for child in root:
+            if child.tag != FILE_ROOT['resources']:
+                continue
+            rid = child.get('id')
+            class_type = child.get('type')
+            if class_type == RESOURCE_TYPES['human']:
+                ref_map[rid] = {
+                    'class_type': class_type,
+                    'org': child.find('Organization').text,
+                    'dept': child.find('Department').text,
+                    'role': child.find('Role').text,
+                }
+            elif class_type == RESOURCE_TYPES['physical']:
+                ref_map[rid] = {
+                    'class_type': class_type,
+                    'type': child.find('Type').text,
+                }
+        return ref_map
 
     def _clone_activity(self, id: str) -> Optional[Activity]:
         if id not in self.activities:

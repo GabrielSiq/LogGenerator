@@ -394,12 +394,12 @@ The paper suggests importing BPMN-compliant files from other tools. Lower priori
 5. ✅ Eliminate magic `"END"` / `"START"` strings
 6. ✅ `duration.py` and `model_builder.py` cleanup
 
-### Phase 4 — Modeling Ergonomics (XML)
-1. Transition delay default (zero if omitted)
-2. Arrival rate `<Default>` block
-3. Resource `ref=` attribute in activities
-4. Availability `<Weekday>` template
-5. Validate rules/data functions at load time (fail-fast)
+### Phase 4 — Modeling Ergonomics (XML) ✅ Complete
+1. ✅ Transition delay default (zero if omitted) — was already implemented
+2. ✅ Arrival rate `<Default>` block — `_parse_calendar()` now supports `<Default>` and `<Weekday>` templates
+3. ✅ Resource `ref=` attribute in activities — `ref="support"` shorthand; also fixes `resource.attrib` mutation bug
+4. ✅ Availability `<Weekday>` template — `<Weekday>` expands to Mon–Fri not already explicitly set
+5. ✅ Validate rules/data functions at load time — `ConfigurationError` with actionable messages in `activity.py` and `gateway.py`
 
 ### Phase 5 — Extra Features (as prioritized)
 1. Simulation seeding (very small effort, high research value)
