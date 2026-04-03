@@ -340,6 +340,181 @@ ConfigurationError: Gateway 'bug' references rule function 'bug' which was not f
 
 ---
 
+### 3.4 Code Quality & Testability
+
+#### 3.4.1 — Plugin Interface Contract
+
+**Current problem:** The two user-supplied Python files (`input/rules.py`, `input/data.py`) are loaded dynamically via `importlib` at startup. Their expected signatures and return types exist only in the code that calls them, not anywhere a developer implementing a new process would look first.
+
+Current conventions (implicit, undocumented):
+- **Rule functions** (one per rule-based gateway, named by gateway ID): receive a `dict` of `{object_id: {field: value, ...}, ...}` and must return a gate ID `str` that exists in the gateway's gate list.
+- **Data transform functions** (one per activity with `DataOutput`, named by activity ID): receive the same `dict` format and must return `{object_id: {field: value, ...}, ...}` containing the fields to write back.
+
+The naming convention (`function name == gateway/activity ID`) is enforced at load time by `ConfigurationError`, but its purpose and the data format are invisible to a user creating a new process model.
+
+**Fix — add `plugins.py` at root level:**
+
+```python
+# plugins.py
+"""
+Defines the interface for user-supplied plugin functions in input/rules.py
+and input/data.py.
+
+Naming convention
+-----------------
+Rule functions must be named after the gateway ID they serve.
+Data transform functions must be named after the activity ID they serve.
+
+Both function types receive a DataSnapshot: a dict mapping each data object's
+ID to a dict of its current field values, e.g.:
+    {'ticket': {'Class': 'support', 'Priority': 'high'}}
+
+Rule functions (input/rules.py)
+--------------------------------
+Signature:  def my_gateway_id(data: DataSnapshot) -> str
+Returns:    a gate ID string matching one of the gateway's defined gates.
+Example:
+    def bug(data: DataSnapshot) -> str:
+        return 'yes' if data['ticket']['Class'] == 'bug' else 'no'
+
+Data transform functions (input/data.py)
+-----------------------------------------
+Signature:  def my_activity_id(data: DataSnapshot) -> DataSnapshot
+Returns:    a dict of {object_id: {field: new_value}} — only the objects and
+            fields that changed need to be present; others are left unchanged.
+Example:
+    def read(data: DataSnapshot) -> DataSnapshot:
+        return {'ticket': {'Class': random.choice(['support', 'trust', 'bug'])}}
+"""
+from typing import Callable, Dict, Any
+
+DataSnapshot = Dict[str, Dict[str, Any]]
+RuleFunction = Callable[[DataSnapshot], str]
+DataFunction = Callable[[DataSnapshot], DataSnapshot]
+```
+
+Additionally, validate data transform return values in `simulation_manager._handle_success()`. Currently, if a data function returns a field name that doesn't exist on the `Form`, it silently fails (the `set_field` call raises a `KeyError` that is not caught). Add explicit validation:
+
+```python
+# In _handle_success(), after output = activity.process_data(data):
+for obj_id, fields in output.items():
+    if obj_id not in data:
+        raise ConfigurationError(
+            f"Data function '{activity.id}' returned unknown object '{obj_id}'."
+        )
+    for field in fields:
+        if field not in data[obj_id]:
+            raise ConfigurationError(
+                f"Data function '{activity.id}' returned unknown field "
+                f"'{field}' on object '{obj_id}'."
+            )
+    self.dm.update_object(obj_id, item.process_id, item.process_instance_id, fields)
+```
+
+**Files:** new `plugins.py`, `simulation_manager.py` — `_handle_success()`
+
+---
+
+#### 3.4.2 — Test Suite
+
+**Current state:** No tests exist. The simulation produces plausible output on every run, which means bugs that shift results (wrong distributions, incorrect resource scheduling, bad routing) produce wrong data silently rather than failing loudly.
+
+**Infrastructure to add:**
+- `pytest` to `requirements.txt`
+- `tests/` directory at project root with `conftest.py` for shared fixtures
+- `numpy.random.seed(42)` fixture applied per-test to eliminate RNG variance in unit tests
+
+**Test organisation:**
+```
+tests/
+├── conftest.py            — seed fixture, minimal Activity/Process builders
+├── unit/
+│   ├── test_duration.py
+│   ├── test_failure.py
+│   ├── test_transition.py
+│   ├── test_gateway.py
+│   ├── test_resource.py
+│   ├── test_data.py
+│   ├── test_queue.py
+│   ├── test_process.py
+│   └── test_model_builder.py
+└── integration/
+    └── test_simulation.py
+```
+
+**Specific tests to write:**
+
+`test_duration.py`
+- `const` distribution always returns its exact value
+- Negative clipping: normal with mean=-1000, std=0 → 0
+- Unknown type raises `ValueError`
+- `round()` is used (not `int()`): normal with mean=0.7, std=0, seeded → 1, not 0
+
+`test_failure.py`
+- `rate=0.0` → `check_failure()` always `False` (100 trials)
+- `rate=1.0` → `check_failure()` always `True` (100 trials)
+
+`test_transition.py`
+- `get_next()` returns `(destination, destination_gate, delay)` with correct types
+- Zero-delay transition returns 0
+
+`test_gateway.py`
+- `GateDistribution`: probabilities not summing to 1.0 raise `ValueError`
+- `GateDistribution`: seeded, distribution `[1.0, 0.0]` always returns first gate
+- `GateRule`: returns the gate the rule function returns
+- `GateRule`: rule returning an unlisted gate raises `RuntimeError`
+- `ConfigurationError` raised when rule function name is missing from module
+
+`test_resource.py`
+- `Availability.is_available()`: known calendar, correct True/False by day and hour
+- `Availability.is_available()`: day absent from calendar returns False
+- `Availability.available_until()`: returns correct cutoff at end of last contiguous available hour
+- `HumanResource`: `is_available()` returns False while `busy_until > start_time`
+- `HumanResource`: double assignment while busy raises `RuntimeError`
+- `HumanResource.when_available()`: returns `busy_until + 1s` if that time is available
+- `PhysicalResource`: `use()` reduces quantity; `replenish()` restores it
+- `PhysicalResource.check_free()`: returns correct free count without `free=True` leaving heap intact
+- `PhysicalResource.check_free()` with `free=True`: quantity is actually replenished
+
+`test_data.py`
+- `Form.set_field()` / `get_field()` round-trip
+- `Form` initialized from `OrderedDict` preserves field order
+- `Form` initialized from list creates `None`-valued fields
+- `DataRequirement.from_list()`: empty list returns `None`; populated list returns correct objects
+- `DataManager.create_instance()` + `read_requirements()` round-trip
+- `DataManager.update_object()` persists changes visible on next read
+
+`test_queue.py`
+- `PriorityQueue` ordering: earlier `start` pops first
+- Same `start`, different priority: higher priority pops first (PRIORITY_VALUES mapping)
+- Same `start` + `priority`, different `process_instance_id`: lower ID pops first
+- `QueueItem.repeat()` returns a **new** object with `attempt + 1`; original unchanged
+- `QueueItem.leftover()` returns a **new** object with correct `leftover_duration`; original unchanged
+
+`test_process.py`
+- `get_next('START')` returns the first activity in the known model
+- `get_next(source, gate)` returns correct element for a gatewayed transition
+- Unknown source returns `(None, None, None)` (no crash)
+- `get_arrival_rate()`: known rate from calendar; missing day/hour returns 0
+- `new()` increments instance counter and returns `ProcessInstance` with correct `process_id`
+
+`test_model_builder.py` (parsing only, no XML files — construct `ElementTree` nodes in-place)
+- `_parse_calendar()`: explicit days populate calendar correctly
+- `_parse_calendar()`: `<Weekday>` fills Mon–Fri not already specified; does not override explicit entries
+- `_parse_calendar()`: `<Default>` fills any remaining days; does not override explicit or Weekday entries
+- `_parse_distribution()`: parses `Normal`, `Uniform`, `Const` attribute dicts correctly
+- `_parse_distribution()`: non-`int` attributes (the `type` key) remain strings
+
+`test_simulation.py` (integration — uses actual XML files from `input/`)
+- 1-day simulation completes without error and produces > 0 events
+- Event log has no `start_activity` without a matching `end_activity`, `failed`, or `timeout` for the same `(process_instance_id, activity_instance_id)` pair — verifies activity lifecycle completeness
+- With `resource_limit={'support': '1', 'trust': '1'}`, `waiting_resource` events appear in the log — verifies wait queue is triggered
+- With `numpy.random.seed(42)`, two runs on the same date range produce identical event counts — requires Phase 5.1 (simulation seeding) to be implemented first; mark as `@pytest.mark.skip` until then
+
+**Files:** new `tests/` directory, updated `requirements.txt`
+
+---
+
 ## 4. Extra Features (New Functionality)
 
 These are beyond the current scope and should not block the core refactor.
@@ -400,6 +575,10 @@ The paper suggests importing BPMN-compliant files from other tools. Lower priori
 3. ✅ Resource `ref=` attribute in activities — `ref="support"` shorthand; also fixes `resource.attrib` mutation bug
 4. ✅ Availability `<Weekday>` template — `<Weekday>` expands to Mon–Fri not already explicitly set
 5. ✅ Validate rules/data functions at load time — `ConfigurationError` with actionable messages in `activity.py` and `gateway.py`
+
+### Phase 4.5 — Code Quality & Testability
+1. Plugin interface contract — `plugins.py` with `DataSnapshot`, `RuleFunction`, `DataFunction` type aliases and docstring spec; validate data function return values in `_handle_success()`
+2. Test suite — `pytest`, `tests/` directory, unit tests for all pure-logic modules, integration test for simulation lifecycle and wait-queue triggering
 
 ### Phase 5 — Extra Features (as prioritized)
 1. Simulation seeding (very small effort, high research value)
